@@ -1,0 +1,10 @@
+# config.yaml
+database:
+  # 相対パスでも絶対パスでも指定可能にする
+  path: "./db_exam/bbs.db" # relative
+  track_modifications: false
+
+server:
+  port: 5050
+  debug: true
+

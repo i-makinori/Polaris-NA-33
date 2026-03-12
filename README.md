@@ -23,7 +23,7 @@ $ source .venv/bin/activate # NOTE: maybe fail
 ##### install depends, and run server
 
 ```sh
-$ pip install flask flask-sqlalchemy
+$ pip install flask flask-sqlalchemy pyyaml
 $ python route.py
 ```sh
 
