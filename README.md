@@ -64,6 +64,12 @@ Route構成。
 - ...
 
 
+## 実装指針
+
+[hints.md](hints.md)
+
+
+
 
 ## install
 
