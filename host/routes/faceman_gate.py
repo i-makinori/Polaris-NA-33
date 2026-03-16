@@ -4,7 +4,7 @@ from werkzeug.security import generate_password_hash
 from sqlalchemy.exc import IntegrityError
 from models import Known_Person
 
-class UserController:
+class FacemanGate:
     def __init__(self, db_session):
         self.db = db_session
 

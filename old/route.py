@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 
 
-# routes/post_controller.py
 from flask import render_template, request, redirect, url_for
 
-class PostController:
+class PostGate:
     def __init__(self, db_session):
         self.db = db_session  # DBセッションなどを注入可能
 

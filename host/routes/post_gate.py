@@ -2,7 +2,7 @@
 from flask import render_template, request, redirect, url_for
 from models import Post  # モデルをインポート
 
-class PostController:
+class PostGate:
     def __init__(self, config, db_session):
         self.config = config
         self.db = db_session
@@ -33,7 +33,7 @@ class PostController:
         bp.add_url_rule('/post', view_func=self.create, methods=['POST'], endpoint='create')
 
 
-# class MainController:
+# class MainGate:
 #     def __init__(self, config, db_session, models):
 #         self.config = config
 #         self.db = db_session
@@ -74,7 +74,7 @@ class PostController:
 #         bp.add_url_rule('/ranference/<int:ranference_id>', view_func=self.ranference_redirect)
 
 
-# class ParambasisController:
+# class ParambasisGate:
 #     def __init__(self, config, db_session):
 #         self.config = config
 #         self.db = db_session
