@@ -6,12 +6,12 @@ from flask import Flask, Blueprint
 # application
 from models import db
 from routes.post_controller import PostController
+from routes.user_controller import UserController
 
 
 # Config of PATH
 base_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../')
 config_file_path = os.path.join(base_dir, './config.yaml')
-
 
 
 # Read Config
@@ -76,21 +76,29 @@ def create_app():
     conf = read_config(config_file_path)
 
     # init APP
-    app = Flask(__name__)
+    assets_folder = os.path.join(base_dir, './host/static/')
+    
+    app = Flask(__name__, static_folder=assets_folder)
 
     # init DataBase
     init_database(conf, app)
+    
+    # config template dir
+    template_dir = os.path.join(base_dir, './host/templates/')
+    app.template_folder = template_dir
 
-    # Controller & Blueprint
-    posts_bp = Blueprint('posts', __name__)
-
-    # db.session を注入
+    # --- PostController ---
+    posts_bp = Blueprint('posts', __name__, template_folder=template_dir)
     post_ctrl = PostController(config=conf, db_session=db.session)
     post_ctrl.register(posts_bp)
     app.register_blueprint(posts_bp)
 
-    # config template
-    app.template_folder = os.path.join(base_dir, './host/templates/')
+    # --- serController ---
+    user_bp = Blueprint('users', __name__, template_folder=template_dir)
+    user_ctrl = UserController(db_session=db.session)
+    user_ctrl.register(user_bp)
+    app.register_blueprint(user_bp)
+
 
     # return
     return app, conf

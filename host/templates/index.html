@@ -2,33 +2,20 @@
 <html lang="ja">
   <head>
     <meta charset="UTF-8">
-    <title>Polaris BBS - Logic & Philosophy</title>
+    <title>Polaris_NA_33</title>
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <style>
-      body { font-family: sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; line-height: 1.6; }
-      .post { border-bottom: 1px solid #ccc; padding: 10px 0; }
-      pre { background: #f4f4f4; padding: 10px; overflow-x: auto; }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {#
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script> ;; JS
+    <img src="{{ url_for('static', filename='images/logo.png') }}"> ;; png
+    #}
   </head>
   <body>
-    <h1>論理・哲学掲示板</h1>
+    <h1>Polaris_NA_33 掲示板</h1>
+
     
-    <form action="/post" method="POST">
-      <input type="text" name="title" placeholder="タイトル" style="width: 100%;" required><br><br>
-      <textarea name="content" placeholder="内容（LaTeX形式も可: $\forall x P(x)$）" style="width: 100%; height: 100px;" required></textarea><br>
-      <button type="submit">投稿する</button>
-    </form>
-
-    <hr>
-
-    {% for post in posts %}
-    <div class="post">
-      <h3>{{ post.title }}</h3>
-      <p style="white-space: pre-wrap;">{{ post.content }}</p>
-      <small>{{ post.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</small>
-    </div>
-    {% endfor %}
+    
   </body>
 </html>
 

@@ -10,7 +10,10 @@ class PostController:
     def index(self):
         # 以前の index ロジック
         posts = Post.query.order_by(Post.created_at.desc()).all()
-        return render_template('index.html', posts=posts, config=self.config)
+        # リスト内包表記で、各 Post を辞書化して文字列にする
+        serialized_posts = [str(post.__dict__) for post in posts]
+        
+        return f'posts: {serialized_posts}'
 
     def create(self):
         # 以前の create_post ロジック
