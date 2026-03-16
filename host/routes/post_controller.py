@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from flask import render_template, request, redirect, url_for
+from models import Post  # モデルをインポート
 
 class PostController:
     def __init__(self, config, db_session):
@@ -7,21 +8,25 @@ class PostController:
         self.db = db_session
 
     def index(self):
-        # YAMLの構造に合わせてアクセス (例: conf_data['board']['title'])
-        title = self.config.get('board', {}).get('title', 'BBS')
-        return f"<h1>{title}</h1>スレッド一覧画面"
-
-    def detail(self, post_id):
-        return f"スレッド詳細: {post_id}"
+        # 以前の index ロジック
+        posts = Post.query.order_by(Post.created_at.desc()).all()
+        return render_template('index.html', posts=posts, config=self.config)
 
     def create(self):
+        # 以前の create_post ロジック
         if request.method == 'POST':
-            # ここで self.db を使って保存処理を行う
+            title = request.form.get('title')
+            content = request.form.get('content')
+            
+            new_post = Post(title=title, content=content)
+            self.db.add(new_post)
+            self.db.commit()
             return redirect(url_for('posts.index'))
-        return "新規作成画面"
+        
+        return render_template('create.html') # 必要に応じて追加
 
     def register(self, bp):
-        # endpoint を 'posts.index' 形式にするため、あえてクラス外から呼ばれる想定
         bp.add_url_rule('/', view_func=self.index, endpoint='index')
-        bp.add_url_rule('/<int:post_id>', view_func=self.detail, endpoint='detail')
-        bp.add_url_rule('/create', view_func=self.create, methods=['GET', 'POST'], endpoint='create')
+        bp.add_url_rule('/post', view_func=self.create, methods=['POST'], endpoint='create')
+
+
