@@ -13,7 +13,8 @@ class PostGate:
         # リスト内包表記で、各 Post を辞書化して文字列にする
         serialized_posts = [str(post.__dict__) for post in posts]
         
-        return f'posts: {serialized_posts}'
+        #return f'posts: {serialized_posts}'
+        return render_template('index.html') # 必要に応じて追加
 
     def create(self):
         # 以前の create_post ロジック

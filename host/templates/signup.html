@@ -1,6 +1,28 @@
-<form method="POST" action="{{ url_for('facemans.signup_post') }}">
-  <input type="text" name="name" placeholder="名前" required>
-  <input type="email" name="email" placeholder="メールアドレス" required>
-  <input type="password" name="password" placeholder="パスワード" required>
-  <button type="submit">登録</button>
-</form>
+{% extends 'base.html' %}
+
+
+{% block title %}ユーザ登録 - Polaris_NA_33{% endblock %}
+
+
+{% block content %}
+  <h2>ユーザ登録</h2>
+
+  ユーザとして登録することができます。
+
+  {% if error_text %}
+  <div class="alert alert-danger" style="color: white; background-color: #e74c3c; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+    <strong>エラー:</strong> {{ error_text }}
+  </div>
+  {% endif %}
+
+  <form method="POST" action="{{ url_for('facemans.signup_post') }}">
+    <input type="text" name="name" placeholder="名前" required> <br />
+    <input type="text" name="text_id" placeholder="ユーザid" required> <br />
+    <input type="email" name="email" placeholder="メールアドレス" required> <br />
+    パスワード入力 (8文字以上、英数混在)
+    <input type="password" name="password_1" placeholder="パスワード" required> <br />
+    <input type="password" name="password_2" placeholder="パスワード再入力" required> <br />
+    <button type="submit">登録</button>
+  </form>
+
+{% endblock %}

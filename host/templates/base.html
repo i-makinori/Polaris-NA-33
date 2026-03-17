@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8">
+    {# block title で、ページごとにタイトルを変えられるようにします #}
+    <title>{% block title %}Polaris_NA_33{% endblock %}</title>
+    
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    {# ページ個別の CSS/JS を追加するための穴 #}
+    {% block extra_head %}{% endblock %}
+  </head>
+  <body>
+    <header>
+      <a href="{{ url_for('posts.index') }}">home</a> |
+      <a href="/tolopica/">トロピカ一覧</a> |
+      <a href="/ranference/">新着の</a> |
+      
+      {# ログイン状態による出し分けの例 #}
+      {#
+      {% if g.faceman %}
+      <strong>{{ g.faceman.name }}</strong> さん、こんにちは。
+      | <a href="{{ url_for('faceman.leave') }}">ログアウト</a>
+      {% else %}
+      <a href="{{ url_for('faceman.enter') }}">ログイン</a>
+      {% endif %}
+      #}
+    </header>
+
+    <main>
+      <h1>{% block h1 %}Polaris_NA_33 掲示板{% endblock %}</h1>
+      
+      {# template's body bellow #}
+      {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+      <hr>
+      <p>&copy; 2026 Polaris_NA_33 Project </p>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  {% if tml_title %}
+    {{ tml_title }}
+  {% else %}
+    Polaris_NA_33
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+  {% if tml_message %}
+    <p>{{ tml_message }}</p>
+  {% endif %}
+  {#<p><a href="/">ホームへ戻る</a></p>#}
+{% endblock %}

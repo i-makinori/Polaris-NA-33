@@ -1,21 +1,19 @@
-<!DOCTYPE html>
-<html lang="ja">
-  <head>
-    <meta charset="UTF-8">
-    <title>Polaris_NA_33</title>
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    {#
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script> ;; JS
-    <img src="{{ url_for('static', filename='images/logo.png') }}"> ;; png
-    #}
-  </head>
-  <body>
-    <h1>Polaris_NA_33 掲示板</h1>
+{% extends 'base.html' %}
 
-    
-    
-  </body>
-</html>
+{# タイトルを上書きしたい場合 #}
+{% block title %}ホーム - Polaris_NA_33{% endblock %}
 
+{% block content %}
+<section class="post-list">
+  <h2>新着メッセージ</h2>
+  {% for post in posts %}
+  <div class="post">
+    <h3>{{ post.title }}</h3>
+    <p>{{ post.content }}</p>
+    <small>投稿者: {{ post.author_name }}</small>
+  </div>
+  {% else %}
+  <p>まだ投稿がありません。最初の「乱雑推論」を投下してみませんか？</p>
+  {% endfor %}
+</section>
+{% endblock %}

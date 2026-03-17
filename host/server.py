@@ -20,25 +20,29 @@ class YAMLParseError(Exception):
     pass
 
 def validate_config(conf):
-    # 必須構造の定義: {セクション: {キー: 型}}
     required_schema = {
         'database': {'path': str, 'track_modifications': bool},
-        'server': {'port': int, 'debug': bool}
+        'server': {'port': int, 'debug': bool},
+        'app_secret_key': str
     }
-    for section, keys in required_schema.items():
-        if section not in conf:
-            raise YAMLParseError(f"セクション '{section}' が config.yaml に存在しません。")
-        for key, expected_type in keys.items():
-            if key not in conf[section]:
-                raise YAMLParseError(f"設定項目 '{section}.{key}' が定義されていません。")
-            # 型チェックを追加してさらなる厳密さを確保
-            if not isinstance(conf[section][key], expected_type):
-                raise YAMLParseError(
-                    f"設定項目 '{section}.{key}' の型が正しくありません。"
-                    f"（期待値: {expected_type.__name__}, 実数値: {type(conf[section][key]).__name__}）"
-                )
-    return True
 
+    for section, expected in required_schema.items():
+        # 1. セクションの存在チェック
+        if section not in conf:
+            raise ValueError(f"設定エラー: セクション '{section}' が見つかりません。")
+        # 2. 値が辞書（セクション）の場合、その中身をチェック
+        if isinstance(expected, dict):
+            for key, expected_type in expected.items():
+                val = conf[section].get(key)
+                if val is None:
+                    raise ValueError(f"設定エラー: '{section}' 内にキー '{key}' がありません。")
+                if not isinstance(val, expected_type):
+                    raise TypeError(f"設定エラー: '{section}.{key}' は {expected_type.__name__} 型である必要があります。")
+        # 3. 直値（app_secret_keyなど）の場合のチェック
+        else:
+            if not isinstance(conf[section], expected):
+                raise TypeError(f"設定エラー: '{section}' は {expected.__name__} 型である必要があります。")
+    return True
 
 def read_config(config_path):
     try:
@@ -79,6 +83,7 @@ def create_app():
     assets_folder = os.path.join(base_dir, './host/static/')
     
     app = Flask(__name__, static_folder=assets_folder)
+    app.secret_key = conf.get('app_secret_key')
 
     # init DataBase
     init_database(conf, app)
