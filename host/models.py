@@ -40,8 +40,9 @@ class Known_Person(db.Model):
     __tablename__ = 'known_person'
     
     id: Mapped[int] = mapped_column(primary_key=True)
+    text_id: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
     name: Mapped[str] = mapped_column(String(50), nullable=False)
-    email: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
+    email: Mapped[str] = mapped_column(String(256), unique=True, nullable=False)
     password: Mapped[str] = mapped_column(String(128), nullable=False)
     
     ranferences: Mapped[List["Ranference"]] = relationship(back_populates="author")
