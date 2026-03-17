@@ -4,9 +4,13 @@
     <meta charset="UTF-8">
     {# block title で、ページごとにタイトルを変えられるようにします #}
     <title>{% block title %}{% endblock %} - Polaris_NA_33 -</title>
-    
+
+    {# comment
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    #}
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/latex_style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     
     {# ページ個別の CSS/JS を追加するための穴 #}
@@ -14,19 +18,31 @@
   </head>
   <body>
     <header>
-      <a href="{{ url_for('posts.index') }}">home</a> |
-      <a href="/tolopica/">トロピカ一覧</a> |
-      <a href="/ranference/">新着の</a> |
-      
-      {# ログイン状態による出し分けの例 #}
-      {#
-      {% if g.faceman %}
-      <strong>{{ g.faceman.name }}</strong> さん、こんにちは。
-      | <a href="{{ url_for('faceman.leave') }}">ログアウト</a>
-      {% else %}
-      <a href="{{ url_for('faceman.enter') }}">ログイン</a>
-      {% endif %}
-      #}
+      <table class="layout-table">
+        <tr>
+          <td rowspan="2" class="td-left">
+            <a href="{{ url_for('posts.index')}}">Polaris-NA-33</a>
+          </td>
+          <td></td>
+          <td class="td-right">
+            {% if session.get('user_id') %}
+            {{ session.get('user_name') }} /
+            <a href="{{ url_for('facemans.signout_get') }}">Sign-out</a>
+            {% else %}
+            <a href="{{ url_for('facemans.signin_get') }}">Sign-in</a> /
+            <a href="{{ url_for('facemans.signup_get') }}">Register</a>
+            {% endif %}
+          </td>
+        </tr>
+        <tr>
+          <td colspan="2" class="td-left" >
+            <a href="{{ url_for('posts.index') }}">Home</a> |
+            <a href="/tolopica/">Tolopica-List</a> |
+            <a href="/ranference/">New-Ranference</a> |
+          </td>
+        </tr>
+      </table>
+      <hr />
     </header>
 
     <main>

@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}ユーザ認証{% endblock %}
+
+{% block content %}
+<h2>ユーザ認証</h2>
+
+{% if error_text %}
+<div class="alert alert-danger" style="color: white; background-color: #e74c3c; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+  <strong>エラー:</strong> {{ error_text }}
+</div>
+{% endif %}
+
+<form method="POST" action="{{ url_for('facemans.signin_post') }}">
+  <table style="border-spacing: 10px;">
+    <tr>
+      <td><label for="text_id">ユーザID</label></td>
+      <td><input type="text" id="text_id" name="text_id" required></td>
+    </tr>
+    <tr>
+      <td><label for="password">パスワード</label></td>
+      <td><input type="password" id="password" name="password" required></td>
+    </tr>
+    <tr>
+      <td></td>
+      <td><button type="submit">サインイン</button></td>
+    </tr>
+  </table>
+</form>
+
+<p><a href="{{ url_for('facemans.signup_get') }}">新規登録はこちら</a></p>
+{% endblock %}

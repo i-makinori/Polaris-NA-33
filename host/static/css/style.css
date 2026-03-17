@@ -1,3 +1,74 @@
-body { font-family: sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; line-height: 1.6; }
-.post { border-bottom: 1px solid #ccc; padding: 10px 0; }
-pre { background: #f4f4f4; padding: 10px; overflow-x: auto; }
+body {
+    font-family: serif;
+    /*max-width: 297mm;*/ /* A3: 297x420mm */
+    max-width: 210mm; /* A4: 210x297mm */
+    margin: auto;
+    border-left: 1.5cm;
+    border-right: 1.5cm;
+    padding-top: 0.2cm;
+    padding-bottom: 1.5cm;
+}
+
+.MathJax {
+    font-size: 1.3em;
+}
+
+
+h1 {font-size: 1.8rem; line-height: 2.2rem; margin-bottom: 1.2rem; margin-top: 1.2rem;}
+h2 {font-size: 1.6rem; line-height: 2rem; margin-top: 2.6rem;}
+h3 {font-size: 1.4rem; margin-top: 2.3rem;}
+h4 {font-size: 1.2rem; margin-top: 2rem;}
+h5 {font-size: 1rem; margin-top: 1.8rem;}
+h6 {font-size: 1rem; font-style: italic; font-weight: normal; margin-top: 2.5rem;}
+h2, h3, h4, h5, h6 {margin-bottom: 0.6rem;}
+
+/* box of cursor hoverd links */
+
+a {
+    border: 1px;
+    border-style: solid;
+    border-color: rgba(0,0,0,0);
+}
+
+a:hover {
+    border: 1px;
+    border-style: solid;
+    border-color: #336633;
+}
+
+/* additional tags */
+.author, .date{text-align: right;}
+
+
+
+
+
+/* for base.html */
+
+/* レイアウト専用テーブル：装飾を一切排除 */
+.layout-table {
+    width: 100%;
+    border-collapse: collapse;
+    border: none !important;      /* LaTeXスタイルの線を強制的に消す */
+    table-layout: fixed;          /* ブラウザの自動計算を抑制 */
+    margin: 0;
+    padding: 0;
+}
+
+.layout-table tr,
+.layout-table td {
+    border: none !important;      /* 行やセルの線も完全に消去 */
+    padding: 0;
+    vertical-align: baseline;     /* 文字の底辺を揃えて知的な印象に */
+}
+
+.td-right {
+    text-align: right;
+    white-space: nowrap;
+}
+
+
+.td-left {
+    text-align: left;
+}
+

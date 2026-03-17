@@ -1,6 +1,6 @@
 
 from flask import flash, render_template, request, redirect, url_for, session
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy.exc import IntegrityError
 from models import Known_Person
 
@@ -59,17 +59,18 @@ def is_ok_faceman_id_text(faceman_id_text_p):
     if not (6 <= len(faceman_id_text_p) <= 20):
         return False, "IDは6文字以上20文字以内で設定してください。"
     # 3. 予約語のチェック (これを忘れると /user/admin のようなURLを乗っ取られる可能性がある)
-    reserved_words = {'admin', 'root', 'system', 'config', 'guest', 'signup', 'login'}
+    reserved_words = {'admin', 'root', 'system', 'config', 'guest', 'signup', 'signin', 'login'}
     if faceman_id_text_p.lower() in reserved_words:
         # return False, "そのIDはシステム予約語のため使用できません。"
         return False, "そのIDは登録されています。"
     # *. Success
     return True, ""
 
+# session names
+session_name_signup_error = 'signup_error'
+session_name_signin_error = 'signin_error'
 
 # Routes for FacemanGate
-
-session_name_signup_error = 'signup_error'
 
 def raise_FacemanGate_client_signup_error(message):
     session[session_name_signup_error] = message
@@ -122,12 +123,10 @@ class FacemanGate:
         # 2.5 DB write (maybe exceptions)
         try:
             # print(f"DEBUG: DB 登録開始 - {name}, {text_id}") # debug
-            new_user = Known_Person(
-                name=name,
-                email=email,
-                text_id=text_id,
-                password=generate_password_hash(p1)
-            )
+            new_user = Known_Person(name=name,
+                                    email=email,
+                                    text_id=text_id,
+                                    password=generate_password_hash(p1))
             self.db.add(new_user)
             self.db.commit()
             # print("DEBUG: DB 登録成功！") # debug
@@ -137,7 +136,7 @@ class FacemanGate:
             return raise_FacemanGate_client_signup_error("その text_id あるいは email は、既に使用されています。")
 
         # 3. success
-        # by AI        # 3.1 auto login
+        # by AI        # 3.1 auto signin
         #         # 登録したてのユーザーIDをセッションに刻む（自動ログイン）
         #         session['user_id'] = new_user.id
         # by AI        session['user_name'] = new_user.name
@@ -149,6 +148,44 @@ class FacemanGate:
         # 3.3 render
         return render_template('message.html', **ctx)
 
+    def signin_get(self):
+        # サインアップ時と同様、エラーメッセージがあれば取り出して表示
+        error_text = session.pop(session_name_signin_error, None)
+        return render_template('signin.html', error_text=error_text)
+
+    def signin_post(self):
+        d = request.form
+        text_id = d.get('text_id')
+        password = d.get('password')
+
+        # 1. ユーザーをDBから探す (ID または Email でログイン可能にするのが一般的)
+        user = Known_Person.query.filter_by(text_id=text_id).first() # ID で探す。
+
+        # 2. ユーザーが存在し、かつパスワードが一致するか検証
+        if user and check_password_hash(user.password, password):
+            # 認証成功！セッションに刻む
+            session.clear() # セキュリティのため一度クリア
+            session['user_id'] = user.id
+            session['user_name'] = user.name
+            
+            # ホーム画面（またはマイページ）へリダイレクト
+            #return redirect(url_for('facemans.index')) # indexは仮です
+            return redirect(url_for('posts.index')) # indexは仮です
+        
+        # 3. 認証失敗（ID間違いかPW間違いかはあえて明示しないのがセキュリティの定石）
+        session[session_name_signin_error] = "ユーザIDまたはパスワードが正しくありません。"
+        return redirect(url_for('facemans.signin_get'))
+
+    def signout_get(self):
+        session.clear() # これでセッションを空にする
+        return redirect(url_for('posts.index')) # indexは仮です
+
     def register(self, bp):
-        bp.add_url_rule('/signup', view_func=self.signup_get, methods=['GET'], endpoint='signup_get')
+        # signup
+        bp.add_url_rule('/signup', view_func=self.signup_get,  methods=['GET'],  endpoint='signup_get')
         bp.add_url_rule('/signup', view_func=self.signup_post, methods=['POST'], endpoint='signup_post')
+        # signin
+        bp.add_url_rule('/signin', view_func=self.signin_get,  methods=['GET'],  endpoint='signin_get')
+        bp.add_url_rule('/signin', view_func=self.signin_post, methods=['POST'], endpoint='signin_post')
+        # signout
+        bp.add_url_rule('/signout', view_func=self.signout_get, methods=['GET'],  endpoint='signout_get')
