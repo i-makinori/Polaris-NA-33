@@ -108,7 +108,7 @@ class TolopicaGate:
                 # 他のユーザーが同時に同じIDで commit した場合などに発動する。
                 self.db.rollback()
                 # print(e)
-                return render_template('tolopica_add.html', error="server error.")
+                return render_template('tolopica_add.html', error="server error.") # exception page
 
             # render with flash message
             flash(f"新しい板「{title}」を作成しました。")

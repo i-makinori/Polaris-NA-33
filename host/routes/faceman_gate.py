@@ -72,9 +72,6 @@ def is_ok_faceman_id_text(faceman_id_text_p):
 
 # Routes for FacemanGate
 
-def raise_FacemanGate_client_signup_error(message, ctx):
-    return render_template('signup.html', error_text=message, **ctx)
-
 class FacemanGate:
     def __init__(self, config,db_session):
         self.config = config
@@ -89,63 +86,68 @@ class FacemanGate:
         name, text_id, email = d.get('name'), d.get('text_id'), d.get('email')
         p1, p2 = d.get('password_1'), d.get('password_2')
 
+        errors = []
         ctx = {'form_name': name, 'form_text_id': text_id, 'form_email': email}
 
         # 2. Validations
         # 2.1 detect that all items are filled
         if not (name and text_id and email and p1 and p2):
-            return raise_FacemanGate_client_signup_error('全項目を入力して下さい。', ctx)
+            errors += ['全項目を入力して下さい。']
 
         # 2.2 password check
         password_is_valid, password_error_message = is_ok_password_text(p1, p2)
         if not password_is_valid:
-            return raise_FacemanGate_client_signup_error(password_error_message, ctx)
+            errors += [password_error_message]
 
         # 2.3 email check
         email_text_is_valid, email_text_error_message = is_ok_email_text(email)
         if not email_text_is_valid:
-            return raise_FacemanGate_client_signup_error(email_text_error_message, ctx)
+            errors += [email_text_error_message]
 
 
         ## Check DB collision (email)
         if Known_Person.query.filter_by(email=email).first():
-            return raise_FacemanGate_client_signup_error("このメールアドレスは既に登録されています。", ctx)
+            errors += ["このメールアドレスは既に登録されています。"]
 
         # 2.4 text_id check
         text_id_text_is_valid, text_id_text_error_message = is_ok_faceman_id_text(text_id)
         if not text_id_text_is_valid:
-            return raise_FacemanGate_client_signup_error(text_id_text_error_message, ctx)
+            errors += [text_id_text_error_message]
 
         ## Check DB collision (text_id)
         if Known_Person.query.filter_by(text_id=text_id).first():
-            return raise_FacemanGate_client_signup_error("このユーザIDは既に使用されています。別のIDをお試しください。", ctx)
+            errors += ["このユーザIDは既に使用されています。別のIDをお試しください。"]
 
-        # 2.5 DB write (maybe exceptions)
+        # 2. R if some errors, return with error message
+        if errors != [] :
+            return render_template('signup.html', error=errors, **ctx)
+
+        # 3 new_user の鋳型の作成
+        new_user = Known_Person(name=name,
+                                email=email,
+                                text_id=text_id,
+                                password=generate_password_hash(p1))
+        # 4 DB write (maybe exceptions)
         try:
-            # print(f"DEBUG: DB 登録開始 - {name}, {text_id}") # debug
-            new_user = Known_Person(name=name,
-                                    email=email,
-                                    text_id=text_id,
-                                    password=generate_password_hash(p1))
             self.db.add(new_user)
             self.db.commit()
-            # print("DEBUG: DB 登録成功！") # debug
-
-        except IntegrityError:
+        except Exception as e:
             self.db.rollback()
-            return raise_FacemanGate_client_signup_error("その text_id あるいは email は、既に使用されています。", ctx)
+            print(e)
+            error_message = "server_error"
+            return render_template('tolopica_add.html', error=error_message, **ctx) # exception page
 
-        # 3. success
-        # 3.1 signin
+        # 5. success
+        # 5.1 signin
         self.state_signin(text_id, p1)
 
-        # 3.2 context(ctx)
+        # 5.2 context(ctx)
         ctx |= { # append
             'tml_message' : f"{name}さんは、id {text_id} かつ、 email {email} にてユーザ登録されました。",
             'tml_title' : "ユーザ登録完了"
         }
 
-        # 3.3 render
+        # 5.3 render
         return render_template('message.html', **ctx)
 
     def signin_get(self):

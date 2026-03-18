@@ -9,12 +9,6 @@
 
   ユーザとして登録することができます。
 
-  {% if error_text %}
-  <div class="alert alert-danger" style="color: white; background-color: #e74c3c; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
-    <strong>エラー:</strong> {{ error_text }}
-  </div>
-  {% endif %}
-
   <form method="POST" action="{{ url_for('facemans.signup_post') }}">
     <table style="border-spacing: 10px;">
       <tr>
