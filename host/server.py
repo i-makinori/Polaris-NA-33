@@ -23,32 +23,51 @@ class YAMLParseError(Exception):
     """Custom Error for Parsing Configure File"""
     pass
 
+
 def validate_config(conf):
+    """
+    Main interface for configuration validation.
+    The actual recursive logic is delegated to the auxiliary function.
+    """
     required_schema = {
         'database': {'path': str, 'track_modifications': bool},
         'server': {'port': int, 'debug': bool},
         'app_secret_key': str
     }
+    
+    # Delegate to the auxiliary function
+    return _validate_config_aux(conf, required_schema, path="")
 
-    for section, expected in required_schema.items():
-        # 1. check if section exsits
-        if section not in conf:
-            raise ValueError(f"設定エラー: セクション '{section}' が見つかりません。")
-        # 2. if the 'expected' is section, check contains
+def _validate_config_aux(conf, schema, path):
+    """
+    Auxiliary recursive function to traverse and validate the config tree.
+    """
+    for key, expected in schema.items():
+        current_path = f"{path}.{key}" if path else key
+        
+        # 1. Existence check
+        if key not in conf:
+            raise ValueError(f"Configuration Error: Missing required key '{current_path}'.")
+
+        actual_val = conf[key]
+
+        # 2. Recursive step (Vertical traversal)
         if isinstance(expected, dict):
-            for key, expected_type in expected.items():
-                val = conf[section].get(key)
-                if val is None:
-                    raise ValueError(f"設定エラー: '{section}' 内にキー '{key}' がありません。")
-                if not isinstance(val, expected_type):
-                    raise TypeError(f"設定エラー: '{section}.{key}' は {expected_type.__name__} 型である必要があります。")
-        # 3. otherwise, check its value.
+            if not isinstance(actual_val, dict):
+                raise TypeError(f"Configuration Error: '{current_path}' must be a dictionary.")
+            _validate_config_aux(actual_val, expected, current_path)
+        
+        # 3. Base case (Leaf node validation)
         else:
-            if not isinstance(conf[section], expected):
-                raise TypeError(f"設定エラー: '{section}' は {expected.__name__} 型である必要があります。")
+            if not isinstance(actual_val, expected):
+                raise TypeError(
+                    f"Configuration Error: '{current_path}' must be of type {expected.__name__}. "
+                    f"Got {type(actual_val).__name__} instead."
+                )
     return True
 
 def read_config(config_path):
+    # Open config file and Valuate to conf
     try:
         with open(config_path, 'r', encoding='utf-8') as f:
             conf = yaml.safe_load(f)
@@ -56,6 +75,7 @@ def read_config(config_path):
         print(f"Config Error: {e}")
         sys.exit(1)
 
+    # Validate conf
     validate_config(conf)
 
     # Return
