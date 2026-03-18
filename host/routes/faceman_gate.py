@@ -136,10 +136,9 @@ class FacemanGate:
             return raise_FacemanGate_client_signup_error("その text_id あるいは email は、既に使用されています。", ctx)
 
         # 3. success
-        # by AI        # 3.1 auto signin
-        #         # 登録したてのユーザーIDをセッションに刻む（自動ログイン）
-        #         session['user_id'] = new_user.id
-        # by AI        session['user_name'] = new_user.name
+        # 3.1 signin
+        self.state_signin(text_id, p1)
+
         # 3.2 context(ctx)
         ctx |= { # append
             'tml_message' : f"{name}さんは、id {text_id} かつ、 email {email} にてユーザ登録されました。",
@@ -156,27 +155,40 @@ class FacemanGate:
         d = request.form
         text_id = d.get('text_id')
         password = d.get('password')
-
-        # 1. ユーザーをDBから探す (ID または Email でログイン可能にするのが一般的)
-        user = Known_Person.query.filter_by(text_id=text_id).first() # ID で探す。
-
-        # 2. ユーザーが存在し、かつパスワードが一致するか検証
-        if user and check_password_hash(user.password, password):
-            # 認証成功！セッションに刻む
-            session.clear() # セキュリティのため一度クリア
-            session['user_id'] = user.id
-            session['user_name'] = user.name
-            
-            # ホーム画面（またはマイページ）へリダイレクト
+        # 認証
+        detect_signin = self.state_signin(text_id, password)
+        # 画面表示
+        if detect_signin==True: # 認証成功
             return redirect(url_for('portal.index'))
-        
-        # 3. 認証失敗
-        error_text = "ユーザIDまたはパスワードが正しくありません。"
-        return render_template('signin.html', error_text=error_text)
+        else: # 認証失敗
+            error_text = "ユーザIDまたはパスワードが正しくありません。"
+            return render_template('signin.html', error_text=error_text)
 
     def signout_get(self):
-        session.clear() # これでセッションを空にする
+        self.state_signout()
         return redirect(url_for('portal.index'))
+
+    def state_signin(self, user_id, password_hash_text):
+        # 1. ユーザーをDBから探す (ID または Email でログイン可能にするのが一般的)
+        user = Known_Person.query.filter_by(text_id=user_id).first() # ID で探す。
+
+        # 2. ユーザーが存在し、かつパスワードが一致するか検証
+        if user and check_password_hash(user.password, password_hash_text): # 認証成功！
+            self.state_signout() # セキュリティのため一度クリア
+            # セッションに刻む
+            session['user_id'] = user.id
+            session['user_name'] = user.name
+            return True
+        else: # 認証失敗
+            return False
+
+    def state_signout(self):
+        session.clear() # is too strong
+        #
+        # session.pop('user_id', None)
+        # session.pop('user_name', None)
+
+        return None
 
     def register(self, bp):
         # signup
