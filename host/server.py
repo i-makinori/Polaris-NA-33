@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from functools import reduce
+#
 import os
 import sys
 import yaml
@@ -18,7 +20,7 @@ config_file_path = os.path.join(base_dir, './config.yaml')
 
 # Read Config
 class YAMLParseError(Exception):
-    """設定ファイルに関するカスタムエラー"""
+    """Custom Error for Parsing Configure File"""
     pass
 
 def validate_config(conf):
@@ -29,10 +31,10 @@ def validate_config(conf):
     }
 
     for section, expected in required_schema.items():
-        # 1. セクションの存在チェック
+        # 1. check if section exsits
         if section not in conf:
             raise ValueError(f"設定エラー: セクション '{section}' が見つかりません。")
-        # 2. 値が辞書（セクション）の場合、その中身をチェック
+        # 2. if the 'expected' is section, check contains
         if isinstance(expected, dict):
             for key, expected_type in expected.items():
                 val = conf[section].get(key)
@@ -40,7 +42,7 @@ def validate_config(conf):
                     raise ValueError(f"設定エラー: '{section}' 内にキー '{key}' がありません。")
                 if not isinstance(val, expected_type):
                     raise TypeError(f"設定エラー: '{section}.{key}' は {expected_type.__name__} 型である必要があります。")
-        # 3. 直値（app_secret_keyなど）の場合のチェック
+        # 3. otherwise, check its value.
         else:
             if not isinstance(conf[section], expected):
                 raise TypeError(f"設定エラー: '{section}' は {expected.__name__} 型である必要があります。")
@@ -56,13 +58,13 @@ def read_config(config_path):
 
     validate_config(conf)
 
-    # return
+    # Return
     return conf
 
 
 # Init System
 def init_database (conf, app):
-    # DB設定
+    # Configure DB
     db_raw_path = conf['database']['path']
     db_path = os.path.join(base_dir, db_raw_path) if not os.path.isabs(db_raw_path) else db_raw_path
     db_modify = conf['database'].get('track_modifications', False)
@@ -70,50 +72,67 @@ def init_database (conf, app):
     app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{db_path}"
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = db_modify
 
-    # DB初期化
+    # Initialize DB
     db.init_app(app)
 
-    # return
+    # Return
     return None
 
 
+def register_gate_to_app(app, name, GateClass, config, db_session, template_dir):
+    """
+    Instantiate a Gate class and register its Blueprint to the Flask application.
+    This factory function encapsulates the entire setup process for each Gate.
+    """
+
+    # 1. Initialize Blueprint with the specified name and template directory.
+    bp = Blueprint(name, __name__, template_folder=template_dir)
+
+    # 2. Instantiate the Gate class by invoking its constructor with config and session.
+    ctrl = GateClass(config=config, db_session=db_session)
+
+    # 3. Register Blueprint to ctrl
+    ctrl.register(bp)
+
+    # 4. Register the configured Blueprint to the main Flask application.
+    app.register_blueprint(bp)
+
+    # Return
+    return app, ctrl
+
+
 def create_app():
-    # read config file
+    # Read config file
     conf = read_config(config_file_path)
 
-    # init APP
+    # Init APP
     assets_folder = os.path.join(base_dir, './host/static/')
-    
+
     app = Flask(__name__, static_folder=assets_folder)
     app.secret_key = conf.get('app_secret_key')
 
-    # init DataBase
+    # Init DataBase
     init_database(conf, app)
-    
-    # config template dir
+
+    # Config template dir
     template_dir = os.path.join(base_dir, './host/templates/')
     app.template_folder = template_dir
 
-    # --- PortalGate ---
-    portal_db   = Blueprint('portal', __name__, template_folder=template_dir)
-    portal_ctrl = PortalGate(config=conf, db_session=db.session)
-    portal_ctrl.register(portal_db)
-    app.register_blueprint(portal_db)
-    
-    # --- PostGate ---
-    posts_bp = Blueprint('posts', __name__, template_folder=template_dir)
-    post_ctrl = PostGate(config=conf, db_session=db.session)
-    post_ctrl.register(posts_bp)
-    app.register_blueprint(posts_bp)
+    # Register gates to app
 
-    # --- FacemanGate ---
-    faceman_bp = Blueprint('facemans', __name__, template_folder=template_dir)
-    faceman_ctrl = FacemanGate(config=conf, db_session=db.session)
-    faceman_ctrl.register(faceman_bp)
-    app.register_blueprint(faceman_bp)
+    # 1. Gate definitions as [('name', Constructor)]
+    gate_definitions = [('portal',   PortalGate),
+                        ('posts',    PostGate),
+                        ('facemans', FacemanGate),]
 
+    # 2. Functional Reduction without 'def'
+    # We use a lambda to process each registration and return the updated app.
+    app = reduce(lambda acc_app, gate_def:
+                 register_gate_to_app(acc_app, gate_def[0], gate_def[1], conf, db.session, template_dir)[0],
+                 gate_definitions,
+                 app)
 
-    # return
+    # Return
     return app, conf
 
 
