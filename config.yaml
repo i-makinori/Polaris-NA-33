@@ -5,7 +5,7 @@ database:
   track_modifications: false
 
 server:
-  port: 5050
+  port: 5000 # check docker-compose.yaml -> ports
   debug: true
 
 # secret_key for app.secret_key

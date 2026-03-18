@@ -1,0 +1,14 @@
+services:
+  bbs-app:
+    build: .
+    container_name: tolopica-bbs
+    ports:
+      - "5000:5000" # check config.yaml -> server: port: 
+    volumes:
+      - .:/app  # ソースコードやDBの変更をリアルタイム同期
+    environment:
+      - FLASK_ENV=development
+      - PYTHONUNBUFFERED=1
+    stdin_open: true # インタラクティブな操作を可能に
+    tty: true
+  

@@ -89,11 +89,19 @@ $ # enable venv
 $ source .venv/bin/activate # NOTE: maybe fail
 ```
 
-##### install depends, and run server
+##### by install depends, and run server
 
 ```sh
 $ pip install flask flask-sqlalchemy pyyaml
+# install and other depends.
+# then, 
+$ cd ./host/
 $ python route.py
 ```
 
 
+##### by docker
+
+```sh
+$ docker compose -f docker.yaml up --build
+```
