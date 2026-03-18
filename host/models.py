@@ -4,6 +4,11 @@ from typing import List, Optional
 from sqlalchemy import String, Text, DateTime, ForeignKey
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
+# 0. Utility
+def get_utc_now():
+    """Returns the current UTC datetime."""
+    return datetime.now(timezone.utc)
+
 # 1. 接続用インスタンスの箱を準備
 # models.py で db を定義し、server.py で後から紐付ける（Flask-SQLAlchemyの作法）
 from flask_sqlalchemy import SQLAlchemy
@@ -17,9 +22,9 @@ class Tolopica(db.Model):
     __tablename__ = 'tolopica'
     
     id: Mapped[int] = mapped_column(primary_key=True)
-    uri: Mapped[str] = mapped_column(String(128), unique=True, nullable=False)
+    text_id: Mapped[str] = mapped_column(String(128), unique=True, nullable=False)
     title: Mapped[str] = mapped_column(String(100), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=get_utc_now)
     
     ranferences: Mapped[List["Ranference"]] = relationship(back_populates="tolopica")
 
@@ -28,7 +33,7 @@ class Ranference(db.Model):
     
     id: Mapped[int] = mapped_column(primary_key=True)
     content: Mapped[str] = mapped_column(Text, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=get_utc_now)
     
     tolopica_id: Mapped[int] = mapped_column(ForeignKey('tolopica.id'))
     faceman_id: Mapped[Optional[int]] = mapped_column(ForeignKey('known_person.id'), nullable=True)
@@ -47,10 +52,12 @@ class Known_Person(db.Model):
     
     ranferences: Mapped[List["Ranference"]] = relationship(back_populates="author")
 
+
+# 3. for sample code.
 class Post(db.Model):
     __tablename__ = 'post'
     
     id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column(String(100), nullable=False)
     content: Mapped[str] = mapped_column(Text, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=get_utc_now)
