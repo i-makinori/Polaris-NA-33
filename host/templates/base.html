@@ -48,15 +48,30 @@
     <main>
       <h1>{% block h1 %}Polaris_NA_33 掲示板{% endblock %}</h1>
 
-      {# render flash(...) messages here #}
+
+      {# render error messages #}
+      {% if error %}
+      <div class="error-box" style="color: red; border: 1px solid red; padding: 10px;">
+        {% if error is string %} {# 文字列ならそのまま表示 #}
+        <p>{{ error }}</p>
+        {% else %}   {# 配列（リスト）なら箇条書きで表示 #}
+        <ul style="margin: 0;">
+          {% for msg in error %}<li>{{ msg }}</li>{% endfor %}
+        </ul>
+        {% endif %}
+      </div>
+      {% endif %}
+      
+      
+      {# render flash(...) messages #}
       {% for message in get_flashed_messages() %}
       <div class="flash-message" style="padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; background: #f9f9f9;">
         {{ message }}
       </div>
       {% endfor %}
-
       
-      {# template's body bellow #}
+      
+      {# template's body #}
       {% block content %}{% endblock %}
     </main>
 

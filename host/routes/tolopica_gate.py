@@ -71,23 +71,29 @@ class TolopicaGate:
             text_id = request.form.get('text_id', '')
             title_d = request.form.get('title', '')
 
+            errors = []
+            ctx = {'form_text_id':text_id, 'form_title':title_d}
+
             # 1. Validate form datas
             # 1.1 text_id check
             ok_id, msg_id = is_ok_tolopica_text_id(text_id)
             if not ok_id:
-                return render_template('tolopica_add.html', error=msg_id)
+                errors += [msg_id]
 
             ## DB collision
             stmt = exists().where(Tolopica.text_id == text_id)
             is_collision = self.db.query(stmt).scalar()
-
             if is_collision:
-                return render_template('tolopica_add.html', error="この板IDは既に登録されています。")
+                errors += ["この板IDは既に登録されています。"]
 
             ## 1.2 title check
             ok_title, msg_title = is_ok_tolopica_title(title_d)
             if not ok_title:
-                return render_template('tolopica_add.html', error=msg_title)
+                errors += [msg_title]
+
+            # 1.R if some errors, return with error message
+            if errors != [] :
+                return render_template('tolopica_add.html', **ctx, error=errors)
 
             # 2. new_topic の鋳型の作成
             title=title_d.strip() # 白字除去

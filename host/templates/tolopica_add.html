@@ -5,19 +5,19 @@
 {% block content %}
 <h2>新しい「板」を作成する</h2>
 
-{% if error %}
-<p style="color: red;"><strong>エラー:</strong> {{ error }}</p>
-{% endif %}
+
 
 <form action="{{ url_for('tolopica.tolopica_add') }}" method="post">
   <div>
     <label for="text_id">板のID (半角英数字):</label><br>
-    <input type="text" name="text_id" id="text_id" required placeholder="例: science_hub">
+    <input type="text" name="text_id" id="text_id" value = "{{ form_text_id or '' }}"
+           required placeholder="例: science_hub">
   </div>
   <br>
   <div>
     <label for="title">板の名前 (タイトル):</label><br>
-    <input type="text" name="title" id="title" required placeholder="例: 科学技術について語る板">
+    <input type="text" name="title" id="title" value="{{ form_title or '' }}"
+           required placeholder="例: 科学技術について語る板">
   </div>
   <br>
   <button type="submit">作成する</button>
@@ -25,4 +25,5 @@
 
 <hr>
 <p><a href="{{ url_for('tolopica.tolopica_list') }}">板の一覧に戻る</a></p>
+
 {% endblock %}
