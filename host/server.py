@@ -3,9 +3,9 @@ from functools import reduce
 #
 import os
 import sys
-import yaml
 from flask import Flask, Blueprint
 # application
+from read_config import read_config_yaml
 from models import db
 from routes.portal_gate import PortalGate
 from routes.post_gate import PostGate
@@ -13,82 +13,30 @@ from routes.faceman_gate import FacemanGate
 
 
 
-# Config of PATH
+# Configs
+config_YAML_required_schemas = {
+    'database': {'path': str, 'track_modifications': bool},
+    'server': {'port': int, 'debug': bool},
+    'app_secret_key': str
+}
+
+## path configs
 base_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../')
 config_file_path = os.path.join(base_dir, './config.yaml')
-
-
-# Read Config
-class YAMLParseError(Exception):
-    """Custom Error for Parsing Configure File"""
-    pass
-
-
-def validate_config(conf):
-    """
-    Main interface for configuration validation.
-    The actual recursive logic is delegated to the auxiliary function.
-    """
-    required_schema = {
-        'database': {'path': str, 'track_modifications': bool},
-        'server': {'port': int, 'debug': bool},
-        'app_secret_key': str
-    }
-    
-    # Delegate to the auxiliary function
-    return _validate_config_aux(conf, required_schema, path="")
-
-def _validate_config_aux(conf, schema, path):
-    """
-    Auxiliary recursive function to traverse and validate the config tree.
-    """
-    for key, expected in schema.items():
-        current_path = f"{path}.{key}" if path else key
-        
-        # 1. Existence check
-        if key not in conf:
-            raise ValueError(f"Configuration Error: Missing required key '{current_path}'.")
-
-        actual_val = conf[key]
-
-        # 2. Recursive step (Vertical traversal)
-        if isinstance(expected, dict):
-            if not isinstance(actual_val, dict):
-                raise TypeError(f"Configuration Error: '{current_path}' must be a dictionary.")
-            _validate_config_aux(actual_val, expected, current_path)
-        
-        # 3. Base case (Leaf node validation)
-        else:
-            if not isinstance(actual_val, expected):
-                raise TypeError(
-                    f"Configuration Error: '{current_path}' must be of type {expected.__name__}. "
-                    f"Got {type(actual_val).__name__} instead."
-                )
-    return True
-
-def read_config(config_path):
-    # Open config file and Valuate to conf
-    try:
-        with open(config_path, 'r', encoding='utf-8') as f:
-            conf = yaml.safe_load(f)
-    except Exception as e:
-        print(f"Config Error: {e}")
-        sys.exit(1)
-
-    # Validate conf
-    validate_config(conf)
-
-    # Return
-    return conf
+assets_folder = os.path.join(base_dir, './host/static/')
+template_dir = os.path.join(base_dir, './host/templates/')
 
 
 # Init System
-def init_database (conf, app):
-    # Configure DB
+def init_database (app, conf):
+
+    # Parse conf
+    db_modify = conf['database']['track_modifications']
     db_raw_path = conf['database']['path']
     db_path = os.path.join(base_dir, db_raw_path) if not os.path.isabs(db_raw_path) else db_raw_path
-    db_modify = conf['database'].get('track_modifications', False)
 
+
+    # Configure DB
     app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{db_path}"
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = db_modify
 
@@ -96,7 +44,7 @@ def init_database (conf, app):
     db.init_app(app)
 
     # Return
-    return None
+    return app
 
 
 def register_gate_to_app(app, name, GateClass, config, db_session, template_dir):
@@ -121,21 +69,16 @@ def register_gate_to_app(app, name, GateClass, config, db_session, template_dir)
     return app, ctrl
 
 
-def create_app():
-    # Read config file
-    conf = read_config(config_file_path)
+def create_app(conf):
 
     # Init APP
-    assets_folder = os.path.join(base_dir, './host/static/')
-
     app = Flask(__name__, static_folder=assets_folder)
-    app.secret_key = conf.get('app_secret_key')
+    app.secret_key = conf['app_secret_key']
 
     # Init DataBase
-    init_database(conf, app)
+    init_database(app, conf)
 
     # Config template dir
-    template_dir = os.path.join(base_dir, './host/templates/')
     app.template_folder = template_dir
 
     # Register gates to app
@@ -153,17 +96,20 @@ def create_app():
                  app)
 
     # Return
-    return app, conf
+    return app
 
 
 # main
 if __name__ == '__main__':
-    app,  conf = create_app()
+    # Parse conf
+    conf = read_config_yaml(config_file_path, config_YAML_required_schemas)
+
+    # create app
+    app = create_app(conf)
 
     with app.app_context():
         db.create_all()
 
-
-    port = conf['server'].get('port', 5050)
-    debug = conf['server'].get('debug', False)
+    port = conf['server']['port']
+    debug = conf['server']['debug']
     app.run(host='0.0.0.0', port=port, debug=debug)
