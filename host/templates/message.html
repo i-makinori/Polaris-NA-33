@@ -9,8 +9,23 @@
 {% endblock %}
 
 {% block content %}
-  {% if tml_message %}
-    <p>{{ tml_message }}</p>
+<div class="message-container">
+
+  {% if tml_title %}
+  <h2 style="border-bottom: 1px solid #ccc; padding-bottom: 5px; font-size: 1.1rem;">
+    {{ tml_title }}
+  </h2>
   {% endif %}
-  {#<p><a href="/">ホームへ戻る</a></p>#}
+
+  {% if tml_message %}
+  <div style="margin: 2rem 0; font-family: 'Consolas', monospace; color: #444;">
+    > {{ tml_message }}
+  </div>
+  {% endif %}
+
+  <hr style="border: 0; border-top: 1px dashed #ccc; margin: 2rem 0;" />
+  <p style="font-size: 0.9rem;">
+    [ <a href="{{ url_for('portal.index') }}" style="text-decoration: none;">Return to Home</a> ]
+  </p>
+</div>
 {% endblock %}

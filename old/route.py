@@ -16,7 +16,7 @@ class PostGate:
     def create(self):
         if request.method == 'POST':
             # 書き込み処理
-            return redirect(url_for('posts.index'))
+            return redirect(url_for('portal.index'))
         return "新規作成画面"
 
     # ここでルートを一括登録する

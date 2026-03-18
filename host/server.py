@@ -5,8 +5,10 @@ import yaml
 from flask import Flask, Blueprint
 # application
 from models import db
+from routes.portal_gate import PortalGate
 from routes.post_gate import PostGate
 from routes.faceman_gate import FacemanGate
+
 
 
 # Config of PATH
@@ -92,15 +94,21 @@ def create_app():
     template_dir = os.path.join(base_dir, './host/templates/')
     app.template_folder = template_dir
 
+    # --- PortalGate ---
+    portal_db   = Blueprint('portal', __name__, template_folder=template_dir)
+    portal_ctrl = PortalGate(config=conf, db_session=db.session)
+    portal_ctrl.register(portal_db)
+    app.register_blueprint(portal_db)
+    
     # --- PostGate ---
     posts_bp = Blueprint('posts', __name__, template_folder=template_dir)
     post_ctrl = PostGate(config=conf, db_session=db.session)
     post_ctrl.register(posts_bp)
     app.register_blueprint(posts_bp)
 
-    # --- facemanGate ---
+    # --- FacemanGate ---
     faceman_bp = Blueprint('facemans', __name__, template_folder=template_dir)
-    faceman_ctrl = FacemanGate(db_session=db.session)
+    faceman_ctrl = FacemanGate(config=conf, db_session=db.session)
     faceman_ctrl.register(faceman_bp)
     app.register_blueprint(faceman_bp)
 

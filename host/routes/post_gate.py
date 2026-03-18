@@ -1,20 +1,11 @@
 # -*- coding: utf-8 -*-
 from flask import render_template, request, redirect, url_for
-from models import Post  # モデルをインポート
+from models import Post 
 
 class PostGate:
     def __init__(self, config, db_session):
         self.config = config
         self.db = db_session
-
-    def index(self):
-        # 以前の index ロジック
-        posts = Post.query.order_by(Post.created_at.desc()).all()
-        # リスト内包表記で、各 Post を辞書化して文字列にする
-        serialized_posts = [str(post.__dict__) for post in posts]
-        
-        #return f'posts: {serialized_posts}'
-        return render_template('index.html') # 必要に応じて追加
 
     def create(self):
         # 以前の create_post ロジック
@@ -25,12 +16,11 @@ class PostGate:
             new_post = Post(title=title, content=content)
             self.db.add(new_post)
             self.db.commit()
-            return redirect(url_for('posts.index'))
+            return redirect(url_for('portal.index'))
         
         return render_template('create.html') # 必要に応じて追加
 
     def register(self, bp):
-        bp.add_url_rule('/', view_func=self.index, endpoint='index')
         bp.add_url_rule('/post', view_func=self.create, methods=['POST'], endpoint='create')
 
 

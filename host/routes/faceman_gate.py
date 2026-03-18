@@ -77,7 +77,8 @@ def raise_FacemanGate_client_signup_error(message):
     return redirect(url_for('facemans.signup_get'))
 
 class FacemanGate:
-    def __init__(self, db_session):
+    def __init__(self, config,db_session):
+        self.config = config
         self.db = db_session
 
     def signup_get(self):
@@ -169,8 +170,7 @@ class FacemanGate:
             session['user_name'] = user.name
             
             # ホーム画面（またはマイページ）へリダイレクト
-            #return redirect(url_for('facemans.index')) # indexは仮です
-            return redirect(url_for('posts.index')) # indexは仮です
+            return redirect(url_for('portal.index'))
         
         # 3. 認証失敗（ID間違いかPW間違いかはあえて明示しないのがセキュリティの定石）
         session[session_name_signin_error] = "ユーザIDまたはパスワードが正しくありません。"
@@ -178,7 +178,7 @@ class FacemanGate:
 
     def signout_get(self):
         session.clear() # これでセッションを空にする
-        return redirect(url_for('posts.index')) # indexは仮です
+        return redirect(url_for('portal.index'))
 
     def register(self, bp):
         # signup
