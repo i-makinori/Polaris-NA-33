@@ -11,7 +11,7 @@ from routes.portal_gate import PortalGate
 from routes.post_gate import PostGate
 from routes.faceman_gate import FacemanGate
 from routes.tolopica_gate import TolopicaGate
-
+from routes.ranference_gate import RanferenceGate
 
 
 # Configs
@@ -88,7 +88,8 @@ def create_app(conf):
     gate_definitions = [('portal',   PortalGate),
                         ('posts',    PostGate),
                         ('facemans', FacemanGate),
-                        ('tolopica', TolopicaGate),]
+                        ('tolopica', TolopicaGate),
+                        ('ranference', RanferenceGate)]
 
     # 2. Functional Reduction without 'def'
     # We use a lambda to process each registration and return the updated app.

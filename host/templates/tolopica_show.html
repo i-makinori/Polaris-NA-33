@@ -10,17 +10,54 @@
   <strong>作成日時:</strong> {{ topic.created_at.strftime('%Y-%m-%d %H:%M') }}
 </p>
 
-<div id="thread-area" style="background-color: #f9f9f9; padding: 15px; border: 1px solid #ccc;">
-  <h3>投稿一覧</h3>
-  {# ここに Ranference (書き込み) のループを実装する予定 #}
-  <p>（まだ書き込みはありません）</p>
+
+{# list of ranferences #}
+<div id="ranferences-area">
+  {% if topic.ranferences %}
+  {% for ranference in topic.ranferences %}
+  <div style="border-bottom: 1px solid #eee; padding: 10px;">
+    <p>
+      <strong>
+        {# author がいれば名前、いなければ「名無しさん」 #}
+        {{ ranference.author.name if ranference.author else "名無しさん" }}
+      </strong> 
+      <small>({{ ranference.created_at.strftime('%Y-%m-%d %H:%M:%S') }})</small>
+    </p>
+    {# 改行を反映させるために linebreaks フィルタ的な処理や pre タグを検討 #}
+    <p style="white-space: pre-wrap;">{{ ranference.content }}</p>
+  </div>
+  {% endfor %}
+  {% else %}
+  <p>まだ書き込みがありません。最初の書き込みをどうぞ！</p>
+  {% endif %}
 </div>
 
 <hr>
-{# 投稿フォーム（予定地） #}
-<h4>この板に書き込む</h4>
-<p>※投稿機能は実装準備中です。</p>
 
+{# form to POST #}
+<form action="{{ url_for('ranference.ranference_post', tolopica_text_id=topic.text_id) }}" method="POST">
+  <div>
+    <label for="content">書き込み内容:</label><br>
+    <textarea name="content" id="content" rows="4" style="width: 100%;">{{ form_content or '' }}</textarea>
+  </div>
+
+  <div style="margin-top: 10px; margin-left: auto; margin-right: 0;">
+    {# shown regardless of signin status #}
+    <button type="submit" name="faceman_type" value="faceless">
+      <strong>名無し</strong> として投稿
+    </button>
+
+    {# shown only when signin status #}
+    {% if session.get('user_id') %}
+    <button type="submit" name="faceman_type" value="faceman">
+      <strong>{{ session.get('user_name') }}</strong> として投稿
+    </button>
+    {% endif %}
+  </div>
+</form>
+
+{# back to List #}
 <hr>
 <p><a href="{{ url_for('tolopica.tolopica_list') }}">板の一覧へ戻る</a></p>
+
 {% endblock %}
