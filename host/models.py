@@ -41,6 +41,9 @@ class Ranference(db.Model):
     tolopica: Mapped["Tolopica"] = relationship(back_populates="ranferences")
     author: Mapped[Optional["Known_Person"]] = relationship(back_populates="ranferences")
 
+    # coding_type: 'text' または 'markdown' を保持
+    coding_type: Mapped[str] = mapped_column(String(20), default='text')
+
 class Known_Person(db.Model):
     __tablename__ = 'known_person'
     

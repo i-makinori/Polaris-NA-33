@@ -19,6 +19,7 @@ class RanferenceGate:
         # 0. get Form Datas
         content = request.form.get('content', '').strip()
         faceman_type = request.form.get('faceman_type') # "faceless" or "faceman"
+        coding_type = request.form.get('coding_type') # "text" or "markdown"
 
         # 1. Validations
 
@@ -32,9 +33,12 @@ class RanferenceGate:
         # errors += ["内容が短かすぎます(10文字以上)。"]
 
         # 1.2 faceman_type check
-        faceman_allowed_types = ['faceless', 'faceman']
-        if not(faceman_type in faceman_allowed_types): # どちらでもない値（不正なリクエストなど）が送られてきた場合
+        if not(faceman_type in ['faceless', 'faceman']): # どれでもない値（不正なリクエストなど）が送られてきた場合
             errors += ["投稿種別が正しくありません。"]
+
+        # 1.3 coding_type check
+        if not(coding_type in ['text', 'markdown']): # どれでもない値（不正なリクエストなど）が送られてきた場合
+            errors += ["coding_type が不正です。"]
 
         # 1.R
         if errors:
@@ -56,7 +60,8 @@ class RanferenceGate:
         new_ranference = Ranference(
             content=content,
             tolopica_id=tolopica.id,
-            faceman_id=effective_author_id
+            faceman_id=effective_author_id,
+            coding_type=coding_type,
         )
 
         # 3. DB 書き込み
