@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}板一覧{% endblock %}
+
+{% block content %}
+<h2>公開中の板一覧</h2>
+
+{% if topics %}
+<ul>
+  {% for topic in topics %}
+  <li>
+    <strong>
+      {# 安全なリンク生成。ボールド・シスターさんの名前も安全に表示されます #}
+      <a href="{{ url_for('tolopica.tolopica_show', text_id=topic.text_id) }}">
+        {{ topic.title }}
+      </a>
+    </strong> 
+    <small>(ID: {{ topic.text_id }})</small>
+    <br>
+    <small>作成日: {{ topic.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+  </li>
+  <br>
+  {% endfor %}
+</ul>
+{% else %}
+<p>まだTolopicaがありません。</p>
+{% endif %}
+
+<hr>
+<p><a href="{{ url_for('tolopica.tolopica_add') }}">+ 新しい板を作る</a></p>
+<p><a href="{{ url_for('portal.index') }}">トップへ戻る</a></p>
+{% endblock %}

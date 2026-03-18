@@ -19,7 +19,7 @@
 
   {% if tml_message %}
   <div style="margin: 2rem 0; font-family: 'Consolas', monospace; color: #444;">
-    > {{ tml_message }}
+    &gt; {{ tml_message | safe }}
   </div>
   {% endif %}
 

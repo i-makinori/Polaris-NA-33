@@ -37,7 +37,7 @@
         <tr>
           <td colspan="2" class="td-left" >
             <a href="{{ url_for('portal.index') }}">Home</a> |
-            <a href="/tolopica/">Tolopica_List</a> |
+            <a href="{{ url_for('tolopica.tolopica_list')}}">Tolopica_List</a> |
             <a href="/ranference/">New_Ranference</a> |
           </td>
         </tr>
@@ -47,6 +47,14 @@
 
     <main>
       <h1>{% block h1 %}Polaris_NA_33 掲示板{% endblock %}</h1>
+
+      {# render flash(...) messages here #}
+      {% for message in get_flashed_messages() %}
+      <div class="flash-message" style="padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; background: #f9f9f9;">
+        {{ message }}
+      </div>
+      {% endfor %}
+
       
       {# template's body bellow #}
       {% block content %}{% endblock %}

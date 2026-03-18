@@ -1,4 +1,4 @@
-
+# -*- coding: utf-8 -*-
 from flask import flash, render_template, request, redirect, url_for, session
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy.exc import IntegrityError

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}{{ topic.title }}{% endblock %}
+
+{% block h1 %}{{ topic.title }}{% endblock %}
+
+{% block content %}
+<p>
+  <strong>板のID:</strong> {{ topic.text_id }} | 
+  <strong>作成日時:</strong> {{ topic.created_at.strftime('%Y-%m-%d %H:%M') }}
+</p>
+
+<div id="thread-area" style="background-color: #f9f9f9; padding: 15px; border: 1px solid #ccc;">
+  <h3>投稿一覧</h3>
+  {# ここに Ranference (書き込み) のループを実装する予定 #}
+  <p>（まだ書き込みはありません）</p>
+</div>
+
+<hr>
+{# 投稿フォーム（予定地） #}
+<h4>この板に書き込む</h4>
+<p>※投稿機能は実装準備中です。</p>
+
+<hr>
+<p><a href="{{ url_for('tolopica.tolopica_list') }}">板の一覧へ戻る</a></p>
+{% endblock %}
