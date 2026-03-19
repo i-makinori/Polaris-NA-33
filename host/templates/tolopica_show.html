@@ -15,22 +15,30 @@
 <div id="ranferences-area">
   {% if topic.ranferences %}
   {% for ranference in topic.ranferences %}
-  <div style="border-bottom: 1px solid #eee; padding: 10px;">
-    <p>
-      <strong>
-        {# author がいれば名前、いなければ「名無しさん」 #}
-        {{ ranference.author.name if ranference.author else "名無しさん" }}
-      </strong> ,
-      <small>({{ ranference.created_at.strftime('%Y-%m-%d %H:%M:%S') }})</small>,
-      <small>形式: {{ ranference.coding_type }}</small>,
-    </p>
-    {# 改行を反映させるために linebreaks フィルタ的な処理や pre タグを検討 #}
-    <p style="white-space: pre-wrap;">{{ ranference.content }}</p>
-  </div>
+
+    <div class="ranference-post">
+      <p>
+        <strong>
+          {# author がいれば名前、いなければ「名無しさん」 #}
+          {{ ranference.author.name if ranference.author else "名無しさん" }}
+        </strong> ,
+        <small>
+          <span class="posted-time" data-utc="{{ ranference.created_at.isoformat() }}">({{ ranference.created_at }})</span>
+          ,
+          <span> 形式: {{ ranference.coding_type }} </span>
+        </small>,
+      </p>
+
+      <div class="posted-content" data-coding-type="{{ ranference.coding_type }}">
+        {{ ranference.content }}
+      </div>
+    </div>
+
   {% endfor %}
   {% else %}
   <p>まだ書き込みがありません。最初の書き込みをどうぞ！</p>
   {% endif %}
+
 </div>
 
 <hr>
@@ -45,7 +53,7 @@
       <option value="text">テキスト</option>
       <option value="markdown">MarkDown</option>
     </select>
-
+    
     {# Textarea of Content #}
     <label for="content">書き込み内容:</label><br>
     <textarea name="content" id="content" rows="11" style="width: 100%;">{{ form_content or '' }}</textarea>

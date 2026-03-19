@@ -11,7 +11,11 @@
     #}
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/latex_style.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/na33_style.css') }}">
+
+    <script src="{{ url_for('static', filename='scripts/marked.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='scripts/na33_script.js') }}"></script>
+    
     
     {# ページ個別の CSS/JS を追加するための穴 #}
     {% block extra_head %}{% endblock %}
