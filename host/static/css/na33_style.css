@@ -72,3 +72,28 @@ a:hover {
     text-align: left;
 }
 
+
+/* for ranference */
+
+.posted-content {
+
+    /* 左スペース */
+    border-left: 3px solid #ccc;     /* 左側の垂直線 */
+    padding-left: 15px; /* 線とテキストの間の余白 */
+    margin-left: 10px;  /* 全体的な左インデント */
+
+    /* 右スペース */
+    border-right: 3px solid #ccc;     /* 右側の垂直線 */
+    padding-right: 15px; /* 線とテキストの間の余白 */
+    margin-right: 10px;  /* 全体的な右インデント */
+
+    /* 改行を維持する設定 */
+    white-space: pre-wrap;
+    /* 上下の余白（任意） */
+    margin-top: 5px; margin-bottom: 5px;
+}
+
+/* Markdown適用時の微調整 */
+.posted-content.markdown-body {
+    /* Markdownライブラリが独自の余白を持つ場合があるため、調整 */
+}
