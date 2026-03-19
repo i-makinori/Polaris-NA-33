@@ -70,8 +70,10 @@ class RanferenceGate:
             self.db.commit()
         except Exception as e:
             self.db.rollback()
-            # print(f"Post Error: {e}")
-            flash("投稿に失敗しました。サーバーエラーです。")
+            print(f"Post Error: {e}")
+            errors += ["投稿に失敗しました。サーバーエラーです。"]
+            return render_template('tolopica_show.html', topic=tolopica, error=errors, form_content=content)
+
 
         # 4. render and back to its tolopica
         flash("投稿しました。")
