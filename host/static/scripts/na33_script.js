@@ -1,33 +1,49 @@
 
+// # ranferences , tolopica_show , ...
+
+function renderAsText(el, raw_text){
+    el.textContent = raw_text;
+    el.classList.remove('markdown-body'); // and remove additional body classes
+    el.style.whiteSpace = 'pre-wrap';
+}
+
+function renderAsMarkDown(el, raw_text){
+    el.innerHTML = marked.parse(raw_text);
+    el.classList.add('markdown-body');
+    el.style.whiteSpace = 'normal';
+}
+
 function toggleView(btn) {
     // ボタンにより、表示方法を変更する。 markdown や text など。
+    // element の取得
+    const post_container = btn.closest('.ranference-post');
+    const content_el = post_container.querySelector('.posted-content');
     
-    const postContainer = btn.closest('.ranference-post');
-    const contentEl = postContainer.querySelector('.posted-content');
-    
-    if (!contentEl) return;
+    if (!content_el) return;
 
     // 現在の状態を確認（属性がなければ false とみなす）
-    const isRaw = contentEl.getAttribute('data-is-raw') === 'true';
-    // 属性から生データを取得（最優先）、なければ現在のテキスト
-    const rawData = contentEl.getAttribute('data-raw-content') || contentEl.textContent;
+    const is_raw = content_el.getAttribute('data-is-raw') === 'true';
+    // 属性から生データを取得
+    const raw_text = content_el.getAttribute('data-raw-content');
 
-    if (!isRaw) {
-        // --- Rawモード (Text表示) へ ---
-        contentEl.textContent = rawData; 
-        contentEl.style.whiteSpace = 'pre-wrap';
-        contentEl.classList.remove('markdown-body');
+    if (!is_raw) {
+        // --- Text表示 モード へ ---
+        renderAsText(content_el, raw_text)
         
-        contentEl.setAttribute('data-is-raw', 'true');
+        content_el.setAttribute('data-is-raw', 'true');
         btn.textContent = 'Render'; // 次に押すと整形表示に戻ることを示す
     } else {
         // --- レンダリングモードへ戻す ---
-        renderByCodingType(contentEl); 
+        renderPostedContentByCodingType(content_el);
+        // renderAsMarkDown(content_el, raw_text)
         
-        contentEl.setAttribute('data-is-raw', 'false');
+        content_el.setAttribute('data-is-raw', 'false');
         btn.textContent = 'Text表示'; // 次に押すと生データ表示になることを示す
     }
 }
+
+
+// ## reRender
 
 function formatLocalTime(el) {
     // UTC文字列をブラウザのローカル日時に変換して整形する
@@ -55,28 +71,21 @@ function formatLocalTime(el) {
 }
 
 
-function renderByCodingType(el) {
+function renderPostedContentByCodingType(el) {
     // conding-type 毎に表示方法を変更
     // markdown形式 や text形式 など。
     
     const type = el.getAttribute('data-coding-type');
-    
-    // 常に属性に隠した「生データ」を優先的に使う
-    // これにより、innerHTMLが書き換わった後でも正しく再レンダリングできる
-    const raw = el.getAttribute('data-raw-content') || el.textContent;
+    const raw_text = el.getAttribute('data-raw-content');
 
     if (type === 'text') {
-        el.textContent = raw; 
-        el.style.whiteSpace = 'pre-wrap';
-        el.classList.remove('markdown-body');
+        renderAsText(el, raw_text);
     } else if (type === 'markdown') {
-        // marked.parse に渡すのは常に「生」のデータ
-        el.innerHTML = marked.parse(raw);
-        el.classList.add('markdown-body');
-        // Markdown時はブラウザの通常の折り返しルールに任せる
-        el.style.whiteSpace = 'normal';
+        renderAsMarkDown(el, raw_text);
     } // else // 拡張用 latex とか HTML とか
 }
+
+// ## apply reREnder
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -86,5 +95,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 2. コーディングタイプに応じた描画処理
     const postedContents = document.querySelectorAll('.posted-content');
-    postedContents.forEach(renderByCodingType);
+    postedContents.forEach(renderPostedContentByCodingType);
 });
