@@ -75,7 +75,33 @@ a:hover {
 
 /* for ranference */
 
-.posted-content {
+#ranferences-area {
+    /* 投稿list */
+    margin-top: 2rem;
+    max-width: 100%;
+    margin-bottom: 2rem;
+}
+
+#ranferences-area > .ranference-post {
+    /* 投稿それぞれ */
+    margin: 0; padding: 0;
+}
+
+
+#ranferences-area > .ranference-post > .head-area > .faceman {
+    /* 投稿者情報エリア (faceman) */
+    font-size: 0.9rem; color: #555; font-weight: bold;
+}
+
+
+#ranferences-area > .ranference-post > .head-area > .ranference-meta {
+    /* 投稿のその他メタ情報 */
+    font-size: 0.8rem; color: #555;
+}
+
+
+#ranferences-area > .ranference-post > .body-area > .posted-content {
+    /* 投稿の本文 */
 
     /* 左スペース */
     border-left: 3px solid #ccc;     /* 左側の垂直線 */
@@ -94,6 +120,6 @@ a:hover {
 }
 
 /* Markdown適用時の微調整 */
-.posted-content.markdown-body {
+#ranferences-area > .ranference-post > .body-area > .posted-content.markdown-body {
     /* Markdownライブラリが独自の余白を持つ場合があるため、調整 */
 }

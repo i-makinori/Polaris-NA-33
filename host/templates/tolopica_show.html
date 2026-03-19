@@ -16,30 +16,43 @@
   {% if topic.ranferences %}
   {% for ranference in topic.ranferences %}
 
-    <div class="ranference-post">
-      <p>
-        <strong>
-          {# author がいれば名前、いなければ「名無しさん」 #}
-          {{ ranference.author.name if ranference.author else "名無しさん" }}
-        </strong> ,
-        <small>
-          <span class="posted-time" data-utc="{{ ranference.created_at.isoformat() }}">({{ ranference.created_at }})</span>
-          ,
-          <span> 形式: {{ ranference.coding_type }} </span>
-        </small>,
-      </p>
+  <div class="ranference-post">
+    
+    <div class="head-area">
+      <span class="faceman">
+        {{ ranference.author.name if ranference.author else "名無しさん" }}
+      </span>,
 
-      <div class="posted-content"data-coding-type="{{ ranference.coding_type }}"
-           >{{ ranference.content }}</div>
+      <time class="ranference-meta posted-time"
+            datetime="{{ ranference.created_at.isoformat() }}" data-utc="{{ ranference.created_at.isoformat() }}">
+        ({{ ranference.created_at }})
+      </time> ,
+      
+      <span class="ranference-meta coding-type-label">
+        形式: {{ ranference.coding_type }}
+      </span> ,
+
+      {#
+      {% if ranference.coding_type != 'text' %}
+      <button class="toggle-view-btn" onclick="toggleView(this)">Text表示</button>
+      {% endif %}
+      #}
+      
     </div>
+
+    <div class="body-area">
+      <div class="posted-content" data-coding-type="{{ ranference.coding_type }}"
+           >{{ ranference.content }}
+      </div>
+    </div>
+  </div>
 
   {% endfor %}
   {% else %}
   <p>まだ書き込みがありません。最初の書き込みをどうぞ！</p>
   {% endif %}
-
 </div>
-
+  
 <hr>
 
 {# form to POST #}

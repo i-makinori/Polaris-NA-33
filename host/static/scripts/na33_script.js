@@ -1,4 +1,35 @@
 
+
+// function toggleView(btn) {
+//     // ボタンから見て一番近い投稿枠 (.ranference-post) を取得
+//     const post = btn.closest('.ranference-post');
+//     // その枠の中にある本文エリアを取得
+//     const contentEl = post.querySelector('.posted-content');
+    
+//     if (!contentEl) return;
+
+//     // 現在の状態をチェック
+//     const isRaw = contentEl.getAttribute('data-is-raw') === 'true';
+//     const rawData = contentEl.getAttribute('data-raw-content') || contentEl.textContent;
+
+//     if (!isRaw) {
+//         // --- Rawモードへ切り替え ---
+//         contentEl.textContent = rawData; // タグを無効化して生文字を表示
+//         contentEl.style.whiteSpace = 'pre-wrap';
+//         contentEl.classList.remove('markdown-body');
+        
+//         contentEl.setAttribute('data-is-raw', 'true');
+//         btn.textContent = 'Render'; // ボタン表示を「戻す」用に変更
+//     } else {
+//         // --- 元のレンダリングモードへ戻す ---
+//         renderByCodingType(contentEl); // 定義済みの関数を再利用
+        
+//         contentEl.setAttribute('data-is-raw', 'false');
+//         btn.textContent = 'Raw';
+//     }
+// }
+
+
 function formatLocalTime(el) {
     // UTC文字列をブラウザのローカル日時に変換して整形する
     // @param {HTMLElement} el - 対象のDOM要素
