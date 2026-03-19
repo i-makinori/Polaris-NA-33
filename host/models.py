@@ -54,13 +54,3 @@ class Known_Person(db.Model):
     password: Mapped[str] = mapped_column(String(128), nullable=False)
     
     ranferences: Mapped[List["Ranference"]] = relationship(back_populates="author")
-
-
-# 3. for sample code.
-class Post(db.Model):
-    __tablename__ = 'post'
-    
-    id: Mapped[int] = mapped_column(primary_key=True)
-    title: Mapped[str] = mapped_column(String(100), nullable=False)
-    content: Mapped[str] = mapped_column(Text, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=get_utc_now)

@@ -8,7 +8,6 @@ from flask import Flask, Blueprint
 from read_config import read_config_yaml
 from models import db
 from routes.portal_gate import PortalGate
-from routes.post_gate import PostGate
 from routes.faceman_gate import FacemanGate
 from routes.tolopica_gate import TolopicaGate
 from routes.ranference_gate import RanferenceGate
@@ -86,7 +85,6 @@ def create_app(conf):
 
     # 1. Gate definitions as [('name', Constructor)]
     gate_definitions = [('portal',   PortalGate),
-                        ('posts',    PostGate),
                         ('facemans', FacemanGate),
                         ('tolopica', TolopicaGate),
                         ('ranference', RanferenceGate)]
