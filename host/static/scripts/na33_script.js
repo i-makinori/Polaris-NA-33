@@ -1,34 +1,33 @@
 
-
-// function toggleView(btn) {
-//     // ボタンから見て一番近い投稿枠 (.ranference-post) を取得
-//     const post = btn.closest('.ranference-post');
-//     // その枠の中にある本文エリアを取得
-//     const contentEl = post.querySelector('.posted-content');
+function toggleView(btn) {
+    // ボタンにより、表示方法を変更する。 markdown や text など。
     
-//     if (!contentEl) return;
+    const postContainer = btn.closest('.ranference-post');
+    const contentEl = postContainer.querySelector('.posted-content');
+    
+    if (!contentEl) return;
 
-//     // 現在の状態をチェック
-//     const isRaw = contentEl.getAttribute('data-is-raw') === 'true';
-//     const rawData = contentEl.getAttribute('data-raw-content') || contentEl.textContent;
+    // 現在の状態を確認（属性がなければ false とみなす）
+    const isRaw = contentEl.getAttribute('data-is-raw') === 'true';
+    // 属性から生データを取得（最優先）、なければ現在のテキスト
+    const rawData = contentEl.getAttribute('data-raw-content') || contentEl.textContent;
 
-//     if (!isRaw) {
-//         // --- Rawモードへ切り替え ---
-//         contentEl.textContent = rawData; // タグを無効化して生文字を表示
-//         contentEl.style.whiteSpace = 'pre-wrap';
-//         contentEl.classList.remove('markdown-body');
+    if (!isRaw) {
+        // --- Rawモード (Text表示) へ ---
+        contentEl.textContent = rawData; 
+        contentEl.style.whiteSpace = 'pre-wrap';
+        contentEl.classList.remove('markdown-body');
         
-//         contentEl.setAttribute('data-is-raw', 'true');
-//         btn.textContent = 'Render'; // ボタン表示を「戻す」用に変更
-//     } else {
-//         // --- 元のレンダリングモードへ戻す ---
-//         renderByCodingType(contentEl); // 定義済みの関数を再利用
+        contentEl.setAttribute('data-is-raw', 'true');
+        btn.textContent = 'Render'; // 次に押すと整形表示に戻ることを示す
+    } else {
+        // --- レンダリングモードへ戻す ---
+        renderByCodingType(contentEl); 
         
-//         contentEl.setAttribute('data-is-raw', 'false');
-//         btn.textContent = 'Raw';
-//     }
-// }
-
+        contentEl.setAttribute('data-is-raw', 'false');
+        btn.textContent = 'Text表示'; // 次に押すと生データ表示になることを示す
+    }
+}
 
 function formatLocalTime(el) {
     // UTC文字列をブラウザのローカル日時に変換して整形する
@@ -55,25 +54,29 @@ function formatLocalTime(el) {
     el.textContent = `(${localTime} (${sign}${hours}${minutes} 換算))`;
 }
 
-function renderByCodingType(el) {
-    //* 要素の data-coding-type 属性に応じて、コンテンツを適切に描画する
-    // @param {HTMLElement} el - 対象のDOM要素
 
+function renderByCodingType(el) {
+    // conding-type 毎に表示方法を変更
+    // markdown形式 や text形式 など。
+    
     const type = el.getAttribute('data-coding-type');
+    
+    // 常に属性に隠した「生データ」を優先的に使う
+    // これにより、innerHTMLが書き換わった後でも正しく再レンダリングできる
+    const raw = el.getAttribute('data-raw-content') || el.textContent;
 
     if (type === 'text') {
-        // 'text' 形式: ほとんど、何もしない（ブラウザのデフォルト表示に任せる）が、
-        // ;
-        // 必要に応じて改行を有効にするためのスタイル付与のみ行う。
-        el.style.whiteSpace = 'pre-wrap'; // 'pre-wrap': textをそのまま(白字や改行もそのまま表示。)
+        el.textContent = raw; 
+        el.style.whiteSpace = 'pre-wrap';
+        el.classList.remove('markdown-body');
     } else if (type === 'markdown') {
-        const raw = el.textContent;
-        // 'Markdown' 形式: HTMLに変換。
+        // marked.parse に渡すのは常に「生」のデータ
         el.innerHTML = marked.parse(raw);
         el.classList.add('markdown-body');
-    } // else { ... } 将来の拡張用 latex とか javascript とか、、、。
+        // Markdown時はブラウザの通常の折り返しルールに任せる
+        el.style.whiteSpace = 'normal';
+    } // else // 拡張用 latex とか HTML とか
 }
-
 
 document.addEventListener('DOMContentLoaded', () => {
 

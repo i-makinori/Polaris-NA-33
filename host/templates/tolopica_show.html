@@ -32,17 +32,18 @@
         形式: {{ ranference.coding_type }}
       </span> ,
 
-      {#
       {% if ranference.coding_type != 'text' %}
       <button class="toggle-view-btn" onclick="toggleView(this)">Text表示</button>
       {% endif %}
-      #}
       
     </div>
 
     <div class="body-area">
-      <div class="posted-content" data-coding-type="{{ ranference.coding_type }}"
-           >{{ ranference.content }}
+      <div class="posted-content" 
+           data-coding-type="{{ ranference.coding_type }}"
+           data-raw-content="{{ ranference.content }}" 
+           data-is-raw="false">
+        {{ ranference.content }}
       </div>
     </div>
   </div>
