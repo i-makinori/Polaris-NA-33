@@ -5,15 +5,17 @@
     {# block title で、ページごとにタイトルを変えられるようにします #}
     <title>{% block title %}{% endblock %} - Polaris_NA_33 -</title>
 
-    {# comment
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    #}
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/latex_style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/na33_style.css') }}">
 
-    <script src="{{ url_for('static', filename='scripts/marked.min.js') }}"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/markdown-it@14.1.0/dist/markdown-it.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/markdown-it-texmath@1.0.0/texmath.min.js"></script>
+
+    
     <script src="{{ url_for('static', filename='scripts/na33_script.js') }}"></script>
     
     

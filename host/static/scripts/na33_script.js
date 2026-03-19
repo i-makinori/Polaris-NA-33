@@ -1,4 +1,25 @@
 
+// # markdown-it texmath
+
+// md (markdown-it) instance
+let md;
+
+function initMarkdown() {
+    if (window.markdownit && window.texmath && window.katex) {
+        md = window.markdownit({
+            html: true,
+            linkify: true
+        }).use(window.texmath, {
+            engine: window.katex,
+            delimiters: ['beg_end', 'brackets', 'dollars'],
+            katexOptions: { strict: false }
+        });
+
+        console.log("Texmath loaded successfully");
+    }
+    return md;
+}
+
 // # ranferences , tolopica_show , ...
 
 function renderAsText(el, raw_text){
@@ -7,11 +28,17 @@ function renderAsText(el, raw_text){
     el.style.whiteSpace = 'pre-wrap';
 }
 
-function renderAsMarkDown(el, raw_text){
-    el.innerHTML = marked.parse(raw_text);
+function renderAsMarkDown(el, raw_text) {
+    // 描画実行
+    el.innerHTML = md.render(raw_text);
+    
+    // スタイル調整
     el.classList.add('markdown-body');
     el.style.whiteSpace = 'normal';
+    
+    // ※ renderMathInElement は不要です（md.render 内で完了しています）
 }
+
 
 function toggleView(btn) {
     // ボタンにより、表示方法を変更する。 markdown や text など。
@@ -85,9 +112,11 @@ function renderPostedContentByCodingType(el) {
     } // else // 拡張用 latex とか HTML とか
 }
 
-// ## apply reREnder
+// # After Load
 
 document.addEventListener('DOMContentLoaded', () => {
+
+    md = initMarkdown();
 
     // 1. タイムゾーンの変換処理
     const timeElements = document.querySelectorAll('.posted-time');
