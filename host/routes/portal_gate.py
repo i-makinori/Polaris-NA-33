@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from flask import render_template, request, redirect, url_for
-from models import Post
-
+from sqlalchemy import select, exists
+from models import Tolopica
 
 # Starting Point for each Routes: Portal
 # as like as "Portal Site".
@@ -12,12 +12,9 @@ class PortalGate:
         self.db = db_session
 
     def index(self):
-        # index page
-        posts = Post.query.order_by(Post.created_at.desc()).all()
-        # リスト内包表記で、各 Post を辞書化して文字列にする
-        serialized_posts = [str(post.__dict__) for post in posts]
+        """indexページ"""
+        return render_template('index.html')
 
-        return render_template('index.html') # 必要に応じて追加
 
     def not_found_error(self, e):
         """404 error handler (Not Found)"""

@@ -1,19 +1,26 @@
 {% extends 'base.html' %}
 
-{# タイトルを上書きしたい場合 #}
 {% block title %}ホーム{% endblock %}
 
 {% block content %}
-<section class="post-list">
-  <h2>新着メッセージ</h2>
-  {% for post in posts %}
-  <div class="post">
-    <h3>{{ post.title }}</h3>
-    <p>{{ post.content }}</p>
-    <small>投稿者: {{ post.author_name }}</small>
-  </div>
-  {% else %}
-  <p>まだ投稿がありません。最初の「乱雑推論」を投下してみませんか？</p>
-  {% endfor %}
-</section>
+
+  
+<ul style="list-style: none; padding: 0;">
+  
+</ul>
+
+{#
+Endpoint: static, URL: /static/<path:filename>
+Endpoint: portal.index, URL: /
+Endpoint: facemans.signup_get, URL: /signup
+Endpoint: facemans.signup_post, URL: /signup
+Endpoint: facemans.signin_get, URL: /signin
+Endpoint: facemans.signin_post, URL: /signin
+Endpoint: facemans.signout_get, URL: /signout
+Endpoint: tolopica.tolopica_add, URL: /tolopica_add
+Endpoint: tolopica.tolopica_list, URL: /tolopica/
+Endpoint: tolopica.tolopica_show, URL: /tolopica/<text_id>
+Endpoint: ranference.ranference_post, URL: /tolopica/<tolopica_text_id>/post
+#}
+
 {% endblock %}
