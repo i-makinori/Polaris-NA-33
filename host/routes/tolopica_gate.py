@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 from flask import render_template, request, redirect, url_for, flash, session
 from sqlalchemy import select, exists
+from utils import GateABC
 from models import Tolopica
+
 
 # class Tolopica(db.Model):
 #     __tablename__ = 'tolopica'
@@ -56,12 +58,16 @@ def is_ok_tolopica_title(title):
     return True, ""
 
 # Routes
+class TolopicaGate(GateABC):
+    def register(self, bp):
+        # share methods and endpoints
+        bp.add_url_rule('/tolopica_add', view_func=self.tolopica_add, methods=['GET', 'POST'], endpoint='tolopica_add')
 
-class TolopicaGate:
-    def __init__(self, config, db_session, logger):
-        self.config = config
-        self.db = db_session
-        self.logger = logger
+        bp.add_url_rule('/tolopica/', view_func=self.tolopica_list, endpoint='tolopica_list')
+
+        # URL Rule with variables
+        bp.add_url_rule('/tolopica/<text_id>', view_func=self.tolopica_show, endpoint='tolopica_show')
+
 
     def tolopica_add(self):
         """板の新規作成"""
@@ -135,18 +141,6 @@ class TolopicaGate:
             return "Topic not found", 404
 
         return render_template('tolopica_show.html', topic=topic)
-
-
-    def register(self, bp):
-        # share methods and endpoints
-        bp.add_url_rule('/tolopica_add', view_func=self.tolopica_add, methods=['GET', 'POST'], endpoint='tolopica_add')
-
-        bp.add_url_rule('/tolopica/', view_func=self.tolopica_list, endpoint='tolopica_list')
-        
-        # URL Rule with variables
-        bp.add_url_rule('/tolopica/<text_id>', view_func=self.tolopica_show, endpoint='tolopica_show')
-
-
 
 
 

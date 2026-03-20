@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 from flask import render_template, request, redirect, url_for, flash, session
 from sqlalchemy import select
+from utils import GateABC
 from models import Tolopica, Ranference, Known_Person
 
+
 class RanferenceGate:
-    def __init__(self, config, db_session, logger):
-        self.config = config
-        self.db = db_session
-        self.logger = logger
+    def register(self, bp):
+        # 投稿処理 (特定の板 text_id に対して POST)
+        bp.add_url_rule('/tolopica/<tolopica_text_id>/post', view_func=self.ranference_post,
+                        methods=['POST'], endpoint='ranference_post')
 
     def ranference_post(self, tolopica_text_id):
         """特定の板への書き込み処理"""
@@ -79,9 +81,3 @@ class RanferenceGate:
         # 4. render and back to its tolopica
         flash("投稿しました。")
         return redirect(url_for('tolopica.tolopica_show', text_id=tolopica_text_id))
-
-
-    def register(self, bp):
-        # 投稿処理 (特定の板 text_id に対して POST)
-        bp.add_url_rule('/tolopica/<tolopica_text_id>/post', view_func=self.ranference_post,
-                        methods=['POST'], endpoint='ranference_post')
