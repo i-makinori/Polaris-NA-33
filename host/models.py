@@ -23,7 +23,7 @@ class Tolopica(db.Model):
     
     id: Mapped[int] = mapped_column(primary_key=True)
     text_id: Mapped[str] = mapped_column(String(128), unique=True, nullable=False)
-    title: Mapped[str] = mapped_column(String(100), nullable=False)
+    title: Mapped[str] = mapped_column(String(128), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=get_utc_now)
     
     ranferences: Mapped[List["Ranference"]] = relationship(back_populates="tolopica")
@@ -48,8 +48,8 @@ class Known_Person(db.Model):
     __tablename__ = 'known_person'
     
     id: Mapped[int] = mapped_column(primary_key=True)
-    text_id: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
-    name: Mapped[str] = mapped_column(String(50), nullable=False)
+    text_id: Mapped[str] = mapped_column(String(128), unique=True, nullable=False)
+    name: Mapped[str] = mapped_column(String(128), nullable=False)
     email: Mapped[str] = mapped_column(String(256), unique=True, nullable=False)
     password: Mapped[str] = mapped_column(String(128), nullable=False)
     

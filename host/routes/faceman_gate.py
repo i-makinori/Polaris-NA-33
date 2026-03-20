@@ -9,10 +9,6 @@ from models import Known_Person
 
 import re
 
-#def validate_text_by_rules(rules):
-
-#    return [msg for condition, msg in rules if not condition]
-
 def validate_val_by_rules(default_test, default_mess, otherwise_rules):
     """
     default_test: True の場合、即座に [default_mess] を返す
@@ -29,20 +25,21 @@ def validate_val_by_rules(default_test, default_mess, otherwise_rules):
     return errors
 
 
+
 RE_DIGIT = re.compile(r'\d')
 RE_ALPHA = re.compile(r'[a-zA-Z]')
 RE_EMAIL = re.compile(r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$')
-RE_ID_FORMAT = re.compile(r'^[a-zA-Z0-9_-]+$')
+RE_FACEMAN_ID_FORMAT = re.compile(r'^[a-zA-Z0-9_-]+$')
+
 RESERVED_WORDS = {'admin', 'root', 'system', 'config', 'guest', 'signup', 'signin', 'login'}
 
-def is_bad_password_text_p(p1, p2):
+
+def is_bad_faceman_name_text_p(name):
     return validate_val_by_rules(
-        (p1 == "" or p2 == ""), "パスワードを入力してください。",
-        [(p1 != p2, "パスワードが一致しません。"),
-         (not (8 <= len(p1) <= 120), "パスワードは8文字以上120文字以下としてください。"),
-         (not p1.isascii(), "パスワードには半角英数字のみ使用できます。"),
-         (RE_DIGIT.search(p1) is None, "パスワードには少なくとも1つの数字を含めてください。"),
-         (RE_ALPHA.search(p1) is None, "パスワードには少なくとも1つの英字を含めてください。")
+        name == "", "名前を入力してください。",
+        [(not (1 <= len(name) <= 100), "名前は1文字以上100文字以内で入力してください。"),
+         ('\n' in name or '\r' in name, "名前には改行を使用できません。"),
+         (name.strip() == "", "名前は空白以外の文字を含めてください。")
         ])
 
 def is_bad_email_text_p(email):
@@ -56,10 +53,22 @@ def is_bad_email_text_p(email):
 def is_bad_faceman_id_text_p(id_text):
     return validate_val_by_rules(
         id_text == "", "ユーザIDを入力してください。",
-        [(RE_ID_FORMAT.match(id_text) is None, "IDには英数字、アンダースコア(_)、ハイフン(-)のみ使用可能です。"),
+        [(RE_FACEMAN_ID_FORMAT.match(id_text) is None, "IDには英数字、アンダースコア(_)、ハイフン(-)のみ使用可能です。"),
          (not (6 <= len(id_text) <= 100), "IDは6文字以上100文字以内で設定してください。"),
          (id_text.lower() in RESERVED_WORDS, "そのIDは登録されています。")
         ])
+
+def is_bad_password_text_p(p1, p2):
+    return validate_val_by_rules(
+        (p1 == "" or p2 == ""), "パスワードを入力してください。",
+        [(p1 != p2, "パスワードが一致しません。"),
+         (not (8 <= len(p1) <= 120), "パスワードは8文字以上120文字以下としてください。"),
+         (not p1.isascii(), "パスワードには半角英数字のみ使用できます。"),
+         (RE_DIGIT.search(p1) is None, "パスワードには少なくとも1つの数字を含めてください。"),
+         (RE_ALPHA.search(p1) is None, "パスワードには少なくとも1つの英字を含めてください。")
+        ])
+
+
 
 
 # session names
@@ -72,49 +81,58 @@ class FacemanGate:
         self.config = config
         self.db = db_session
 
+    @staticmethod
+    def _signup_post_errors(name, text_id, email, p1, p2):
+        """
+        全てのバリデーションを実行し、エラーメッセージのリストを返す。
+        DB照合などの「外部への副作用」を伴うチェックもここに集約する。
+        """
+        errors = []
+
+        # 1. 必須項目チェック（ガード節）
+        if not (name and text_id and email and p1 and p2):
+            return ["全項目を入力して下さい。"]
+
+        # 2. 各フィールドの形式チェック（地雷リストの結合）
+        errors += is_bad_faceman_name_text_p(name)
+        errors += is_bad_faceman_id_text_p(text_id)
+        errors += is_bad_email_text_p(email)
+        errors += is_bad_password_text_p(p1, p2)
+
+        # 3. DB重複チェック
+        if Known_Person.query.filter_by(text_id=text_id).first():
+            errors.append("このユーザIDは既に使用されています。別のIDをお試しください。")
+        if Known_Person.query.filter_by(email=email).first():
+            errors.append("このメールアドレスは既に登録されています。")
+
+        # R. return
+        return errors
+
+
     def signup_get(self):
         return render_template('signup.html')
 
-    def signup_post(self):
-        # 1.  handle posted datas
-        d = request.form
-        name, text_id, email = d.get('name'), d.get('text_id'), d.get('email')
-        p1, p2 = d.get('password_1'), d.get('password_2')
 
-        errors = []
+    def signup_post(self):
+        # 1. variables setting. (and also getting).
+        # 1.1 handle posted datas
+        form_dict = request.form
+        keys = ('name', 'text_id', 'email', 'password_1', 'password_2')
+        name, text_id, email, p1, p2 = map(form_dict.get, keys)
+        # 1.2. make context (ctx) .
         ctx = {'form_name': name, 'form_text_id': text_id, 'form_email': email}
 
         # 2. Validations
-        # 2.1 detect that all items are filled
-        if not (name and text_id and email and p1 and p2):
-            errors += ['全項目を入力して下さい。']
-
-        # 2.2 password check
-        errors += is_bad_password_text_p(p1, p2)
-
-        # 2.3 email check
-        errors += is_bad_email_text_p(email)
-        ## Check DB collision (email)
-        if Known_Person.query.filter_by(email=email).first():
-            errors += ["このメールアドレスは既に登録されています。"]
-
-        # 2.4 text_id check
-        errors += is_bad_faceman_id_text_p(text_id)
-
-        ## Check DB collision (text_id)
-        if Known_Person.query.filter_by(text_id=text_id).first():
-            errors += ["このユーザIDは既に使用されています。別のIDをお試しください。"]
-
-
-        # 2. R if some errors, return with error message
+        errors = self._signup_post_errors(name, text_id, email, p1, p2)
+        # 2.R. if some errors, return with error message.
         if errors != [] :
             return render_template('signup.html', error=errors, **ctx)
+        # if p1 != p2 :
+        #     return render_template('signup.html', error=["パスワードが一致しません。"], **ctx)
 
         # 3 new_user の鋳型の作成
-        new_user = Known_Person(name=name,
-                                email=email,
-                                text_id=text_id,
-                                password=generate_password_hash(p1))
+        hash_pass = generate_password_hash(p1) # assume p1 == p2
+        new_user = Known_Person(name=name, email=email, text_id=text_id, password=hash_pass)
         # 4 DB write (maybe exceptions)
         try:
             self.db.add(new_user)
