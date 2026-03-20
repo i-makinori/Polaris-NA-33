@@ -23,7 +23,7 @@ def get_values_from_dict(data_dict, key_list, default=""):
     """
     # 1. get(k) が None なら default ("") を採用
     # 2. 文字列として .strip() を実行
-    return [ (data_dict.get(k) or default).strip() for k in key_list ]
+    return [ (data_dict.get(k) or default) for k in key_list ]
 
 
 # Abstract Base Class (ABC)

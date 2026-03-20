@@ -50,8 +50,9 @@ class TolopicaGate(GateABC):
         # 1. variables setting. (and also getting from POST).
         # 1.1 handle posted datas
         keys = ['text_id', 'title']
-        text_id, title_d = get_values_from_dict(request.form, keys)
-        title = title_d.strip()
+        text_id, title_raw = get_values_from_dict(request.form, keys)
+        # title, = map(str.strip, [title_raw]) # a[0] object # white_spaces for title_text is detected in validation.
+        title = title_raw
         ctx = {'form_text_id': text_id, 'form_title': title}
 
         # 2. Validations

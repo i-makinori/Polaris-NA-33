@@ -54,7 +54,9 @@ class FacemanGate(GateABC):
         # 1. variables setting. (and also getting from POST).
         # 1.1 handle posted datas
         keys = ('name', 'text_id', 'email', 'password_1', 'password_2')
-        name, text_id, email, p1, p2 = get_values_from_dict(request.form, keys)
+        name_raw, text_id_raw, email_raw, p1, p2 = get_values_from_dict(request.form, keys)
+        name, text_id, email = map(str.strip, [name_raw, text_id_raw, email_raw])
+
         ctx = {'form_name': name, 'form_text_id': text_id, 'form_email': email}
 
         # 2. Validations
