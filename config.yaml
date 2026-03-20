@@ -4,9 +4,14 @@ database:
   path: "./db_exam/bbs.db" # relative
   track_modifications: false
 
+logger:
+  path: "./db_exam/log.log"
+  # 良い設定
+
 server:
   port: 5000 # check docker-compose.yaml -> ports
   debug: true
+
 
 # secret_key for app.secret_key
 app_secret_key: "very_long_secret_key---ppNVKmGzRNG7hbnr-snbjGPihFfrXpD4LXkAyywNVUhbA3hpUu5YKPHsPDmxN4JdwHsgkHa2tYAe4iUy5Bcd"

@@ -58,9 +58,10 @@ def is_ok_tolopica_title(title):
 # Routes
 
 class TolopicaGate:
-    def __init__(self, config,db_session):
+    def __init__(self, config, db_session, logger):
         self.config = config
         self.db = db_session
+        self.logger = logger
 
     def tolopica_add(self):
         """板の新規作成"""

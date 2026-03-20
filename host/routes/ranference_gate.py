@@ -4,9 +4,10 @@ from sqlalchemy import select
 from models import Tolopica, Ranference, Known_Person
 
 class RanferenceGate:
-    def __init__(self, config, db_session):
+    def __init__(self, config, db_session, logger):
         self.config = config
         self.db = db_session
+        self.logger = logger
 
     def ranference_post(self, tolopica_text_id):
         """特定の板への書き込み処理"""

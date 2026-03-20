@@ -2,6 +2,8 @@
 from flask import flash, render_template, request, redirect, url_for, session
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy.exc import IntegrityError
+#
+from utils import *
 from models import Known_Person
 
 
@@ -77,9 +79,10 @@ def is_bad_password_text_p(p1, p2):
 # Routes for FacemanGate
 
 class FacemanGate:
-    def __init__(self, config,db_session):
+    def __init__(self, config, db_session, logger):
         self.config = config
         self.db = db_session
+        self.logger = logger
 
     @staticmethod
     def _signup_post_errors(name, text_id, email, p1, p2):
@@ -139,13 +142,29 @@ class FacemanGate:
             self.db.commit()
         except Exception as e:
             self.db.rollback()
-            print(e)
+
+            # write log to server logfile
+            log_context = {"name": name, "text_id": text_id, "email": email,
+                           "p_1":"...omit...", "p2":"...omit...",
+                           "error": str(e)}
+            log_msg = logger_text("SIGNUP_DB_ERROR", context=log_context)
+            self.logger.error(log_msg, exc_info=True)
+
+            # return to client user
             error_message = "server_error"
             return render_template('tolopica_add.html', error=error_message, **ctx) # exception page
 
         # 5. success
         # 5.1 signin
         self.state_signin(text_id, p1)
+
+
+        # write log to server logfile
+        # log_context = {"name": name, "text_id": text_id, "email": email,
+        #     "p_1":"...omit...", "p2":"...omit...",}
+        # log_msg = logger_text("SIGNUP_DB_ERROR", context=log_context)
+        #self.logger.info(log_msg, exc_info=True)
+
 
         # 5.2 context(ctx)
         ctx |= { # append

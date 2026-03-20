@@ -4,6 +4,8 @@ from functools import reduce
 import os
 import sys
 from flask import Flask, Blueprint
+import logging
+from logging.handlers import RotatingFileHandler
 # application
 from read_config import read_config_yaml
 from models import db
@@ -47,7 +49,21 @@ def init_database (app, conf):
     return app
 
 
-def register_gate_to_app(app, name, GateClass, config, db_session, template_dir):
+def init_logger (app, conf):
+    # ログファイルを生成し、フォーマットを決める
+    file_handler = RotatingFileHandler('app_error.log', maxBytes=1024*1024, backupCount=5)
+    file_handler.setFormatter(logging.Formatter(
+        '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
+    ))
+    file_handler.setLevel(logging.ERROR)
+
+    # Flask 標準のロガーに設定を反映
+    app.logger.addHandler(file_handler)
+
+    return app.logger
+
+
+def register_gate_to_app(app, name, GateClass, config, db_session, logger, template_dir):
     """
     Instantiate a Gate class and register its Blueprint to the Flask application.
     This factory function encapsulates the entire setup process for each Gate.
@@ -57,7 +73,7 @@ def register_gate_to_app(app, name, GateClass, config, db_session, template_dir)
     bp = Blueprint(name, __name__, template_folder=template_dir)
 
     # 2. Instantiate the Gate class by invoking its constructor with config and session.
-    ctrl = GateClass(config=config, db_session=db_session)
+    ctrl = GateClass(config=config, db_session=db_session, logger=logger)
 
     # 3. Register Blueprint to ctrl
     ctrl.register(bp)
@@ -78,8 +94,12 @@ def create_app(conf):
     # Init DataBase
     init_database(app, conf)
 
+    # Init logger
+    logger = init_logger(app, conf)
+
     # Config template dir
     app.template_folder = template_dir
+
 
     # Register gates to app
 
@@ -92,7 +112,8 @@ def create_app(conf):
     # 2. Functional Reduction without 'def'
     # We use a lambda to process each registration and return the updated app.
     app = reduce(lambda acc_app, gate_def:
-                 register_gate_to_app(acc_app, gate_def[0], gate_def[1], conf, db.session, template_dir)[0],
+                 register_gate_to_app(acc_app, gate_def[0], gate_def[1],
+                                      conf, db.session, logger, template_dir)[0],
                  gate_definitions,
                  app)
 

@@ -7,9 +7,10 @@ from models import Tolopica
 # as like as "Portal Site".
 
 class PortalGate:
-    def __init__(self, config, db_session):
+    def __init__(self, config, db_session, logger):
         self.config = config
         self.db = db_session
+        self.logger = logger
 
     def index(self):
         """indexページ"""
