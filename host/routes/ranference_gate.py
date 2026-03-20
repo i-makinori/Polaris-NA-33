@@ -5,7 +5,7 @@ from utils import GateABC
 from models import Tolopica, Ranference, Known_Person
 
 
-class RanferenceGate:
+class RanferenceGate(GateABC):
     def register(self, bp):
         # 投稿処理 (特定の板 text_id に対して POST)
         bp.add_url_rule('/tolopica/<tolopica_text_id>/post', view_func=self.ranference_post,

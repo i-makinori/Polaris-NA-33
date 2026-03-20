@@ -5,9 +5,9 @@ from sqlalchemy.exc import IntegrityError
 #
 from utils import logger_text, GateABC
 from models import Known_Person
-from routes.validation_text_input import is_bad_faceman_name_text_p, is_bad_email_text_p, is_bad_faceman_id_text_p, is_bad_password_text_p
+from validation_text_input import is_bad_faceman_name_text_p, is_bad_email_text_p, is_bad_faceman_id_text_p, is_bad_password_text_p
 
-# Routes for FacemanGate
+# Routes defined in FacemanGate
 
 class FacemanGate(GateABC):
     def register(self, bp):

@@ -23,16 +23,13 @@ def validate_val_by_rules(default_test, default_mess, otherwise_rules):
 
 
 # register regrep as constant for processing speed
+
+## common
+
+RE_EMAIL = re.compile(r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$')
 RE_DIGIT = re.compile(r'\d')
 RE_ALPHA = re.compile(r'[a-zA-Z]')
-RE_EMAIL = re.compile(r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$')
-RE_FACEMAN_ID_FORMAT = re.compile(r'^[a-zA-Z0-9_-]+$')
 
-# constant words
-RESERVED_WORDS = {'admin', 'root', 'system', 'config', 'guest', 'signup', 'signin', 'login'}
-
-
-# validations
 def is_bad_email_text_p(email):
     return validate_val_by_rules(
         email == "", "メールアドレスを入力してください。",
@@ -51,6 +48,13 @@ def is_bad_password_text_p(p1, p2):
          (RE_ALPHA.search(p1) is None, "パスワードには少なくとも1つの英字を含めてください。")
         ])
 
+
+## faceman
+
+FACEMAN_RESERVED_WORDS = {'admin', 'root', 'system', 'config', 'guest', 'signup', 'signin', 'login'}
+RE_FACEMAN_ID_FORMAT = re.compile(r'^[a-zA-Z0-9_-]+$')
+
+
 def is_bad_faceman_name_text_p(name):
     return validate_val_by_rules(
         name == "", "名前を入力してください。",
@@ -64,6 +68,32 @@ def is_bad_faceman_id_text_p(id_text):
         id_text == "", "ユーザIDを入力してください。",
         [(RE_FACEMAN_ID_FORMAT.match(id_text) is None, "IDには英数字、アンダースコア(_)、ハイフン(-)のみ使用可能です。"),
          (not (6 <= len(id_text) <= 100), "IDは6文字以上100文字以内で設定してください。"),
-         (id_text.lower() in RESERVED_WORDS, "そのIDは登録されています。")
+         (id_text.lower() in FACEMAN_RESERVED_WORDS, "そのIDは登録されています。")
         ])
 
+
+## tolopica
+
+RE_TOLOPICA_ID_FORMAT = re.compile(r'^[a-zA-Z0-9_-]+$')
+TOLOPICA_RESERVED_WORDS = {'add', 'edit', 'delete', 'all', 'api'}
+
+def is_bad_tolopica_id_text_p(text_id):
+    """
+    板のID (text_id) の不備をチェックし、エラーメッセージのリストを返す。
+    """
+    return validate_val_by_rules(
+        text_id == "", "板のIDを入力してください。",
+        [(not (1 <= len(text_id) <= 120), "板のIDは1文字以上120文字以内で設定してください。"),
+         (RE_TOLOPICA_ID_FORMAT.match(text_id) is None, "IDには英数字、アンダースコア(_)、ハイフン(-)のみ使用可能です。"),
+         (text_id.lower() in TOLOPICA_RESERVED_WORDS, "そのIDは使用されています。") # 予約URLとの衝突対策
+        ])
+
+def is_bad_tolopica_title_text_p(title):
+    """
+    板のタイトル (title) の不備をチェックし、エラーメッセージのリストを返す。
+    """
+    return validate_val_by_rules(
+        title == "", "タイトルを入力してください。",
+        [(title.strip() == "", "タイトルは（空白を除いて）1文字以上入力してください。"),
+         (len(title) > 120, "タイトルが長すぎます（120文字以下に。）。")
+        ])
