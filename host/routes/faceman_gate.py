@@ -9,62 +9,57 @@ from models import Known_Person
 
 import re
 
-def is_ok_password_text(password_1, password_2):
-    # 0. Password equally
-    if password_1 != password_2:
-        return False, "パスワードが一致しません。"
-    # 1. ASCIIコードのみかチェック (0x00 - 0x7F)
-    if not all(ord(c) < 128 for c in password_1):
-        return False, "パスワードには半角英数字のみ使用できます。"
-    # 2. 8文字以上かチェック
-    if len(password_1) < 8:
-        return False, "パスワードは8文字以上必要です。"
-    # 3. 数字が含まれているかチェック
-    if not re.search(r'\d', password_1):
-        return False, "パスワードには少なくとも1つの数字を含めてください。"
-    # 4. アルファベットが含まれているかチェック
-    if not re.search(r'[a-zA-Z]', password_1):
-        return False, "パスワードには少なくとも1つの英字を含めてください。"
-    return True, ""
+#def validate_text_by_rules(rules):
+
+#    return [msg for condition, msg in rules if not condition]
+
+def validate_val_by_rules(default_test, default_mess, otherwise_rules):
+    """
+    default_test: True の場合、即座に [default_mess] を返す
+    otherwise_rules: (エラー条件, メッセージ) のリスト。条件が True のものを抽出する
+    """
+    errors = []
+
+    if default_test:
+        errors = [default_mess]
+    else:
+        # 地雷（True）を踏んでいるメッセージだけをリストにして返す
+        errors = [msg for condition, msg in otherwise_rules if condition]
+
+    return errors
 
 
-def is_ok_email_text(email_text_p):
-    # 0. email text exists.
-    if not email_text_p:
-        return False, "メールアドレスを入力してください。"
-    # 1. 基本構造のチェック (RFC5322に準拠した実用的な正規表現)
-    # ユーザー名部分は英数字と一部の記号、ドメイン部分は英数字とハイフン、最後に2文字以上のTLD
-    email_regex = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
-    if not re.match(email_regex, email_text_p):
-        return False, "メールアドレスの形式が正しくありません。"
-    # 2. 連続するドットの禁止 (例: a..b@example.com)
-    if '..' in email_text_p:
-        return False, "ドットが連続しているアドレスは使用できません。"
-    # 3. 全体的な長さ制限 (RFC準拠: 合計254文字まで)
-    if len(email_text_p) > 254:
-        return False, "メールアドレスが長すぎます。"
-    # *. Success
-    return True, ""
+RE_DIGIT = re.compile(r'\d')
+RE_ALPHA = re.compile(r'[a-zA-Z]')
+RE_EMAIL = re.compile(r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$')
+RE_ID_FORMAT = re.compile(r'^[a-zA-Z0-9_-]+$')
+RESERVED_WORDS = {'admin', 'root', 'system', 'config', 'guest', 'signup', 'signin', 'login'}
 
+def is_bad_password_text_p(p1, p2):
+    return validate_val_by_rules(
+        (p1 == "" or p2 == ""), "パスワードを入力してください。",
+        [(p1 != p2, "パスワードが一致しません。"),
+         (not (8 <= len(p1) <= 120), "パスワードは8文字以上120文字以下としてください。"),
+         (not p1.isascii(), "パスワードには半角英数字のみ使用できます。"),
+         (RE_DIGIT.search(p1) is None, "パスワードには少なくとも1つの数字を含めてください。"),
+         (RE_ALPHA.search(p1) is None, "パスワードには少なくとも1つの英字を含めてください。")
+        ])
 
-def is_ok_faceman_id_text(faceman_id_text_p):
-    # 0. form value exists.
-    if not faceman_id_text_p:
-        return False, "ユーザIDを入力してください。"
-    # 1. regex check. Allowed signs is '_' and '-'.
-    id_regex = r'^[a-zA-Z0-9_-]+$'  # ハイフン記号のregexの登録でエスケープを用いる。
-    if not re.match(id_regex, faceman_id_text_p):
-        return False, "IDには英数字、アンダースコア(_)、ハイフン(-)のみ使用可能です。"
-    # 2. 文字数のチェック
-    if not (6 <= len(faceman_id_text_p) <= 20):
-        return False, "IDは6文字以上20文字以内で設定してください。"
-    # 3. 予約語のチェック (これを忘れると /user/admin のようなURLを乗っ取られる可能性がある)
-    reserved_words = {'admin', 'root', 'system', 'config', 'guest', 'signup', 'signin', 'login'}
-    if faceman_id_text_p.lower() in reserved_words:
-        # return False, "そのIDはシステム予約語のため使用できません。"
-        return False, "そのIDは登録されています。"
-    # *. Success
-    return True, ""
+def is_bad_email_text_p(email):
+    return validate_val_by_rules(
+        email == "", "メールアドレスを入力してください。",
+        [(RE_EMAIL.match(email) is None, "メールアドレスの形式が正しくありません。"),
+         ('..' in email, "ドットが連続しているアドレスは使用できません。"), # not を外しました
+         (len(email) > 254, "メールアドレスが長すぎます。")
+        ])
+
+def is_bad_faceman_id_text_p(id_text):
+    return validate_val_by_rules(
+        id_text == "", "ユーザIDを入力してください。",
+        [(RE_ID_FORMAT.match(id_text) is None, "IDには英数字、アンダースコア(_)、ハイフン(-)のみ使用可能です。"),
+         (not (6 <= len(id_text) <= 100), "IDは6文字以上100文字以内で設定してください。"),
+         (id_text.lower() in RESERVED_WORDS, "そのIDは登録されています。")
+        ])
 
 
 # session names
@@ -95,28 +90,21 @@ class FacemanGate:
             errors += ['全項目を入力して下さい。']
 
         # 2.2 password check
-        password_is_valid, password_error_message = is_ok_password_text(p1, p2)
-        if not password_is_valid:
-            errors += [password_error_message]
+        errors += is_bad_password_text_p(p1, p2)
 
         # 2.3 email check
-        email_text_is_valid, email_text_error_message = is_ok_email_text(email)
-        if not email_text_is_valid:
-            errors += [email_text_error_message]
-
-
+        errors += is_bad_email_text_p(email)
         ## Check DB collision (email)
         if Known_Person.query.filter_by(email=email).first():
             errors += ["このメールアドレスは既に登録されています。"]
 
         # 2.4 text_id check
-        text_id_text_is_valid, text_id_text_error_message = is_ok_faceman_id_text(text_id)
-        if not text_id_text_is_valid:
-            errors += [text_id_text_error_message]
+        errors += is_bad_faceman_id_text_p(text_id)
 
         ## Check DB collision (text_id)
         if Known_Person.query.filter_by(text_id=text_id).first():
             errors += ["このユーザIDは既に使用されています。別のIDをお試しください。"]
+
 
         # 2. R if some errors, return with error message
         if errors != [] :
