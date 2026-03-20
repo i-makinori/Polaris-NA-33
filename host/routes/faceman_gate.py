@@ -73,7 +73,7 @@ class FacemanGate(GateABC):
 
         # 4 DB write (maybe exceptions)
         db_success_p = self.safe_db_write(
-            new_user,
+            self.db, self.logger, new_user,
             log_tag="DB_ERROR_SIGNUP",
             context= ctx | {"p_1":"...omit...", "p2":"...omit..."}, # appended dict
         )

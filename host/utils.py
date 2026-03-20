@@ -41,21 +41,24 @@ class GateABC(ABC):
         """Blueprintへのルーティング登録を強制する"""
         pass
 
-    def safe_db_write(self, model_obj, log_tag="DB_ERROR", context=None):
+    @staticmethod
+    def safe_db_write(db_session, logger, model_obj, log_tag="DB_ERROR", context=None):
         """
         DBへの書き込みを試行し、失敗時はロールバックと詳細ログ出力を行う。
+        引数に db_session と logger を取ることで副作用を排除。
         """
         try:
-            self.db.add(model_obj)
-            self.db.commit()
+            db_session.add(model_obj)
+            db_session.commit()
             return True
         except Exception as e:
-            self.db.rollback()
+            db_session.rollback()
 
             # write log to server logfile
             log_ctx = context.copy() if context else {}
-            # log_ctx["error_str"] = str(e) # e is contained in logging format
+            # e は exc_info=True によって詳細なスタックトレースとして出力されるため、log_ctxには加えない。
             log_msg = logger_text(log_tag, context=log_ctx)
-            self.logger.error(log_msg, exc_info=True)
+            # logger も引数のものを使用
+            logger.error(log_msg, exc_info=True)
 
             return False

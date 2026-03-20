@@ -66,7 +66,7 @@ class TolopicaGate(GateABC):
 
         # 4. write to DB (maybe exceptions)
         db_success_p = self.safe_db_write(
-            new_topic,
+            self.db, self.logger, new_topic,
             log_tag="DB_ERROR_TOLOPICA",
             context=ctx,
         )
