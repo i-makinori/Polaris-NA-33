@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from flask import render_template, request, redirect, url_for, flash, session
 from sqlalchemy import select, exists
-from utils import GateABC
+from utils import logger_text, get_values_from_dict, GateABC
 from models import Tolopica
 from validation_text_input import is_bad_tolopica_id_text_p, is_bad_tolopica_title_text_p
 
@@ -26,10 +26,9 @@ class TolopicaGate(GateABC):
 
     def tolopica_add_post(self):
         """板の新規作成 (DB書き込み) そして、 フォームなどへとリダイレクト """
-
-        text_id = request.form.get('text_id', '')
-        title_d = request.form.get('title', '')
-        ctx = {'form_text_id':text_id, 'form_title':title_d}
+        keys = ['text_id', 'title']
+        text_id, title_d = get_values_from_dict(request.form, keys)
+        ctx = {'form_text_id': text_id, 'form_title': title_d}
 
         # 1. Validate form datas
         errors = []

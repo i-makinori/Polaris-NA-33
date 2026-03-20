@@ -3,7 +3,7 @@ from flask import flash, render_template, request, redirect, url_for, session
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy.exc import IntegrityError
 #
-from utils import logger_text, GateABC
+from utils import logger_text, get_values_from_dict, GateABC
 from models import Known_Person
 from validation_text_input import is_bad_faceman_name_text_p, is_bad_email_text_p, is_bad_faceman_id_text_p, is_bad_password_text_p
 
@@ -55,10 +55,8 @@ class FacemanGate(GateABC):
     def signup_post(self):
         # 1. variables setting. (and also getting).
         # 1.1 handle posted datas
-        form_dict = request.form
         keys = ('name', 'text_id', 'email', 'password_1', 'password_2')
-        name, text_id, email, p1, p2 = map(form_dict.get, keys)
-        # 1.2. make context (ctx) .
+        name, text_id, email, p1, p2 = get_values_from_dict(request.form, keys)
         ctx = {'form_name': name, 'form_text_id': text_id, 'form_email': email}
 
         # 2. Validations
@@ -110,9 +108,9 @@ class FacemanGate(GateABC):
         return render_template('signin.html')
 
     def signin_post(self):
-        form_dict = request.form
-        text_id = form_dict.get('text_id')
-        password = form_dict.get('password')
+        keys = ['text_id', 'password']
+        text_id, password = get_values_from_dict(request.form, keys)
+
         # 認証
         detect_signin = self.state_signin(text_id, password)
         # 画面表示
