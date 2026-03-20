@@ -64,20 +64,22 @@ class TolopicaGate(GateABC):
         new_topic = Tolopica(text_id=text_id, title=title)
 
         # 4. write to DB (maybe exceptions)
-        try:
-            self.db.add(new_topic)
-            self.db.commit()
-        except Exception as e:
-            self.db.rollback()
-            print(f"Ranference POST Error: {e}")
-            errors += ["登録に失敗しました。サーバーエラーです。"]
-            return render_template('tolopica_add.html', **ctx, error=errors) # exception page
-
-        # 5. success
-
-        # render with flash message
-        flash(f"新しい板「{title}」を作成しました。")
-        return redirect(url_for('tolopica.tolopica_list'))
+        db_success_p = self.safe_db_write(
+            new_topic,
+            log_tag="DB_ERROR_TOLOPICA",
+            context=ctx,
+        )
+        # 5. case by db_success_p
+        # 5.F if Fail ...
+        if not db_success_p:
+            # 5.R render
+            error_messages_to_client = ["板の作成に失敗しました。サーバエラーです。"]
+            return render_template('tolopica_add.html', error=error_messages_to_client, **ctx)
+        # 5.T if Success ...
+        else:
+            # 5.R render with flash message
+            flash(f"新しい板「{title}」を作成しました。")
+            return redirect(url_for('tolopica.tolopica_list'))
 
 
     def tolopica_list(self):

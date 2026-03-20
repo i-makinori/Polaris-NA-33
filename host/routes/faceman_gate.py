@@ -70,38 +70,35 @@ class FacemanGate(GateABC):
         new_user = Known_Person(name=name, email=email, text_id=text_id, password=hash_pass)
 
         # 4 DB write (maybe exceptions)
-        try:
-            self.db.add(new_user)
-            self.db.commit()
-        except Exception as e:
-            self.db.rollback()
+        db_success_p = self.safe_db_write(
+            new_user,
+            log_tag="DB_ERROR_SIGNUP",
+            context= ctx | {"p_1":"...omit...", "p2":"...omit..."}, # appended dict
+        )
 
-            # write log to server logfile
-            log_context = {"name": name, "text_id": text_id, "email": email, "p_1":"...omit...", "p2":"...omit...",}
-            log_msg = logger_text("SIGNUP_DB_ERROR", context=log_context)
-            self.logger.error(log_msg, exc_info=True) # log_message with exception_info
+        # 5. case by db_success_p
+        # 5.F if Fail ...
+        if not db_success_p:
+            # 5.R render
+            error_messages_to_client = ["ユーザ登録に失敗しました。サーバエラーです。"]
+            return render_template('signup.html', error=error_messages_to_client, **ctx)
+        # 5.T if Success ...
+        else:
+            # 5.1 signin at client
+            self.state_signin(text_id, p1)
 
-            # return to client user
-            error_message = "server_error"
-            return render_template('signup.html', error=error_message, **ctx) # exception page
+            # # 5.2 write server's log file
+            # log_context = {"name": name, "text_id": text_id, "email": email, "p_1":"...omit...", "p2":"...omit...",}
+            # log_msg = logger_text("SIGNUP_DB_MESSAGE", context=log_context)
+            # self.logger.info(log_msg, exc_info=False) # not in exception
 
-        # 5. success
-        # 5.1 signin at client
-        self.state_signin(text_id, p1)
-
-        # # 5.2 write server's log file
-        # log_context = {"name": name, "text_id": text_id, "email": email, "p_1":"...omit...", "p2":"...omit...",}
-        # log_msg = logger_text("SIGNUP_DB_MESSAGE", context=log_context)
-        # self.logger.info(log_msg, exc_info=False) # not in exception
-
-        # 5.2 update context (ctx)
-        ctx |= { # append
-            'tml_message' : f"{name}さんは、id: {text_id} かつ、 email: {email} にてユーザ登録されました。",
-            'tml_title' : "ユーザ登録完了"
-        }
-
-        # 5.3 render
-        return render_template('message.html', **ctx)
+            # 5.2 update context (ctx)
+            ctx |= { # append
+                'tml_message' : f"{name}さんは、id: {text_id} かつ、 email: {email} にてユーザ登録されました。",
+                'tml_title' : "ユーザ登録完了"
+            }
+            # 5.R render
+            return render_template('message.html', **ctx)
 
     def signin_get(self):
         return render_template('signin.html')

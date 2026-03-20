@@ -41,16 +41,21 @@ class GateABC(ABC):
         """Blueprintへのルーティング登録を強制する"""
         pass
 
-    # def safe_db_write(self, model_obj, error_msg="Server Error", log_tag="DB_ERR", context=None):
-    #     """
-    #     DBへの add/commit/rollback とエラーログ出力を一元化。
-    #     """
-    #     try:
-    #         self.db.add(model_obj)
-    #         self.db.commit()
-    #         return True, None
-    #     except Exception as e:
-    #         self.db.rollback()
-    #         log_content = logger_text(log_tag, context={**(context or {}), "error": str(e)})
-    #         self.logger.error(log_content, exc_info=True)
-    #         return False, error_msg
+    def safe_db_write(self, model_obj, log_tag="DB_ERROR", context=None):
+        """
+        DBへの書き込みを試行し、失敗時はロールバックと詳細ログ出力を行う。
+        """
+        try:
+            self.db.add(model_obj)
+            self.db.commit()
+            return True
+        except Exception as e:
+            self.db.rollback()
+
+            # write log to server logfile
+            log_ctx = context.copy() if context else {}
+            # log_ctx["error_str"] = str(e) # e is contained in logging format
+            log_msg = logger_text(log_tag, context=log_ctx)
+            self.logger.error(log_msg, exc_info=True)
+
+            return False
