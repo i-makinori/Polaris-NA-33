@@ -144,31 +144,26 @@ class FacemanGate:
             self.db.rollback()
 
             # write log to server logfile
-            log_context = {"name": name, "text_id": text_id, "email": email,
-                           "p_1":"...omit...", "p2":"...omit...",
-                           "error": str(e)}
+            log_context = {"name": name, "text_id": text_id, "email": email, "p_1":"...omit...", "p2":"...omit...",}
             log_msg = logger_text("SIGNUP_DB_ERROR", context=log_context)
-            self.logger.error(log_msg, exc_info=True)
+            self.logger.error(log_msg, exc_info=True) # log_message with exception_info
 
             # return to client user
             error_message = "server_error"
-            return render_template('tolopica_add.html', error=error_message, **ctx) # exception page
+            return render_template('signup.html', error=error_message, **ctx) # exception page
 
         # 5. success
-        # 5.1 signin
+        # 5.1 signin at client
         self.state_signin(text_id, p1)
 
+        # 5.2 write server's log file
+        log_context = {"name": name, "text_id": text_id, "email": email, "p_1":"...omit...", "p2":"...omit...",}
+        log_msg = logger_text("SIGNUP_DB_MESSAGE", context=log_context)
+        self.logger.info(log_msg, exc_info=False) # not in exception
 
-        # write log to server logfile
-        # log_context = {"name": name, "text_id": text_id, "email": email,
-        #     "p_1":"...omit...", "p2":"...omit...",}
-        # log_msg = logger_text("SIGNUP_DB_ERROR", context=log_context)
-        #self.logger.info(log_msg, exc_info=True)
-
-
-        # 5.2 context(ctx)
+        # 5.2 update context (ctx)
         ctx |= { # append
-            'tml_message' : f"{name}さんは、id {text_id} かつ、 email {email} にてユーザ登録されました。",
+            'tml_message' : f"{name}さんは、id: {text_id} かつ、 email: {email} にてユーザ登録されました。",
             'tml_title' : "ユーザ登録完了"
         }
 

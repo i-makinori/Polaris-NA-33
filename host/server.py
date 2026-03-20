@@ -18,9 +18,11 @@ from routes.ranference_gate import RanferenceGate
 # Configs
 config_YAML_required_schemas = {
     'database': {'path': str, 'track_modifications': bool},
+    'logger': {'path': str, 'log_level': str},
     'server': {'port': int, 'debug': bool},
     'app_secret_key': str
 }
+
 
 ## path configs
 base_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../')
@@ -30,36 +32,83 @@ template_dir = os.path.join(base_dir, './host/templates/')
 
 
 # Init System
-def init_database (app, conf):
 
-    # Parse conf
-    db_modify = conf['database']['track_modifications']
+def make_path_dir_if_not_exists(pathname):
+    dirname = os.path.dirname(pathname)
+    if not os.path.exists(dirname):
+        os.makedirs(dirname)
+    
+
+def init_database (app, conf):
+    # 0. Parse conf
+    # 0.1 path
     db_raw_path = conf['database']['path']
     db_path = os.path.join(base_dir, db_raw_path) if not os.path.isabs(db_raw_path) else db_raw_path
+    # 0.2... modify, ...
+    db_modify = conf['database']['track_modifications']
 
-
-    # Configure DB
+    # 1. Configure DB
     app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{db_path}"
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = db_modify
 
-    # Initialize DB
+    # 2. Initialize DB
+    if db_path:
+        make_path_dir_if_not_exists(db_path)
     db.init_app(app)
 
-    # Return
+    # R. Return
     return app
 
 
+
+
+def is_log_level_exists_in_logging_p__otherwise__errror_and_exit (level_str):
+    # 2. logging に その LogLevel が存在するかをチェック (logging._nameToLevel を直接参照)
+    if level_str not in logging._nameToLevel:
+        # 無ければエラー出力
+        sys.stderr.write(f"Invalid log_level: '{level_str}'\n")
+        sys.stderr.write("Available levels:\n")
+
+        # 数値順にソートして「名前:数値」の形式で出力
+        for name, val in sorted(logging._nameToLevel.items(), key=lambda x: x[1]):
+            if name != "NOTSET":
+                sys.stderr.write(f"  {name} : {val}\n")
+        sys.exit(1)
+        return False
+    return True
+
+
 def init_logger (app, conf):
-    # ログファイルを生成し、フォーマットを決める
-    file_handler = RotatingFileHandler('app_error.log', maxBytes=1024*1024, backupCount=5)
-    file_handler.setFormatter(logging.Formatter(
-        '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
-    ))
-    file_handler.setLevel(logging.ERROR)
+    # 0. Parse conf
+    # 0.1 path
+    log_raw_path = conf['logger']['path']
+    log_path = os.path.join(base_dir, log_raw_path) if not os.path.isabs(log_raw_path) else log_raw_path
+
+    # 0.2 log_level
+    #   log_level は  DEBUG, INFO, WARNING, ERROR, CRITICAL, から選択のこと。
+    level_str = conf['logger']['log_level'].upper()
+    if not is_log_level_exists_in_logging_p__otherwise__errror_and_exit (level_str):
+        sys.exit(1)
+
+    log_level = logging._nameToLevel[level_str]
+    
+    # 1. ログファイルを生成
+    if log_path:
+        make_path_dir_if_not_exists(log_path)
+    file_handler = RotatingFileHandler(log_path, maxBytes=1024*1024, backupCount=5)
+
+    # 2. フォーマットを決定
+    formatter_pattern = '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
+    file_handler.setFormatter(logging.Formatter(formatter_pattern))
+
+    # Log Level の設定
+    file_handler.setLevel(log_level)
+    app.logger.setLevel(log_level)
 
     # Flask 標準のロガーに設定を反映
     app.logger.addHandler(file_handler)
 
+    # return
     return app.logger
 
 

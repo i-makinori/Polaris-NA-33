@@ -2,11 +2,15 @@
 database:
   # 相対パスでも絶対パスでも指定可能にする
   path: "./db_exam/bbs.db" # relative
+  #
   track_modifications: false
 
 logger:
-  path: "./db_exam/log.log"
-  # 良い設定
+  # 相対パスでも絶対パスでも指定可能にする
+  path: "./db_exam/server_log.log"
+  #
+  # log_level: "DEBUG" # logging.DEBUG, logging.INFO, logging.WARNING, logging.ERROR, logging.CRITICAL,
+  log_level: "DEBUG"
 
 server:
   port: 5000 # check docker-compose.yaml -> ports
