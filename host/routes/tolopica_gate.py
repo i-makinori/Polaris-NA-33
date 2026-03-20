@@ -19,6 +19,27 @@ class TolopicaGate(GateABC):
         # URL Rule with variables
         bp.add_url_rule('/tolopica/<text_id>', view_func=self.tolopica_show, endpoint='tolopica_show')
 
+    @staticmethod
+    def _tolopica_add_post_errors(c_Tolopica, text_id, title):
+        """
+        板作成時のバリデーションを集約
+        """
+        # 0. 必須チェック
+        if not (text_id and title):
+            return ["全ての項目を入力してください。"]
+
+        # 1. 各フィールドの文字列形式チェック（地雷リストの結合）
+        errors = []
+        errors += is_bad_tolopica_id_text_p(text_id)
+        errors += is_bad_tolopica_title_text_p(title)
+
+        # 2. DB重複チェック
+        if c_Tolopica.query.filter_by(text_id=text_id).first():
+            errors.append("この板IDは既に登録されています。")
+
+        # R. return
+        return errors
+
 
     def tolopica_add_get(self):
         """板の新規作成 (フォーム)"""
@@ -26,43 +47,33 @@ class TolopicaGate(GateABC):
 
     def tolopica_add_post(self):
         """板の新規作成 (DB書き込み) そして、 フォームなどへとリダイレクト """
+        # 1. variables setting. (and also getting from POST).
+        # 1.1 handle posted datas
         keys = ['text_id', 'title']
         text_id, title_d = get_values_from_dict(request.form, keys)
-        ctx = {'form_text_id': text_id, 'form_title': title_d}
+        title = title_d.strip()
+        ctx = {'form_text_id': text_id, 'form_title': title}
 
-        # 1. Validate form datas
-        errors = []
-        # 1.1 text_id check
-        errors += is_bad_tolopica_id_text_p
-
-        ## DB collision
-        stmt = exists().where(Tolopica.text_id == text_id)
-        is_collision = self.db.query(stmt).scalar()
-        if is_collision:
-            errors += ["この板IDは既に登録されています。"]
-
-        ## 1.2 title check
-        errors += is_bad_tolopica_title_text_p
-
-        # 1.R if some errors, return with error message
+        # 2. Validations
+        errors = self._tolopica_add_post_errors(Tolopica, text_id, title)
+        # 2.R if some errors, return with error message
         if errors != [] :
             return render_template('tolopica_add.html', **ctx, error=errors)
 
-        # 2. new_topic の鋳型の作成
-        title=title_d.strip() # 白字除去
+        # 3. new_topic の鋳型の作成
         new_topic = Tolopica(text_id=text_id, title=title)
 
-        # 3. write to DB
+        # 4. write to DB (maybe exceptions)
         try:
             self.db.add(new_topic)
             self.db.commit()
         except Exception as e:
-            # ここでの rollback は「万が一」の保険。
-            # 他のユーザーが同時に同じIDで commit した場合などに発動する。
             self.db.rollback()
             print(f"Ranference POST Error: {e}")
             errors += ["登録に失敗しました。サーバーエラーです。"]
             return render_template('tolopica_add.html', **ctx, error=errors) # exception page
+
+        # 5. success
 
         # render with flash message
         flash(f"新しい板「{title}」を作成しました。")

@@ -21,27 +21,26 @@ class FacemanGate(GateABC):
         bp.add_url_rule('/signout', view_func=self.signout_get, methods=['GET'],  endpoint='signout_get')
 
     @staticmethod
-    def _signup_post_errors(name, text_id, email, p1, p2):
+    def _signup_post_errors(c_Known_Person, name, text_id, email, p1, p2):
         """
         全てのバリデーションを実行し、エラーメッセージのリストを返す。
         DB照合などの「外部への副作用」を伴うチェックもここに集約する。
         """
-        errors = []
-
-        # 1. 必須項目チェック（ガード節）
+        # 0. 必須項目チェック（ガード節）
         if not (name and text_id and email and p1 and p2):
             return ["全項目を入力して下さい。"]
 
-        # 2. 各フィールドの形式チェック（地雷リストの結合）
+        # 1. 各フィールドの文字列形式チェック（地雷リストの結合）
+        errors = []
         errors += is_bad_faceman_name_text_p(name)
         errors += is_bad_faceman_id_text_p(text_id)
         errors += is_bad_email_text_p(email)
         errors += is_bad_password_text_p(p1, p2)
 
-        # 3. DB重複チェック
-        if Known_Person.query.filter_by(text_id=text_id).first():
+        # 2. DB重複チェック
+        if c_Known_Person.query.filter_by(text_id=text_id).first():
             errors.append("このユーザIDは既に使用されています。別のIDをお試しください。")
-        if Known_Person.query.filter_by(email=email).first():
+        if c_Known_Person.query.filter_by(email=email).first():
             errors.append("このメールアドレスは既に登録されています。")
 
         # R. return
@@ -51,16 +50,15 @@ class FacemanGate(GateABC):
     def signup_get(self):
         return render_template('signup.html')
 
-
     def signup_post(self):
-        # 1. variables setting. (and also getting).
+        # 1. variables setting. (and also getting from POST).
         # 1.1 handle posted datas
         keys = ('name', 'text_id', 'email', 'password_1', 'password_2')
         name, text_id, email, p1, p2 = get_values_from_dict(request.form, keys)
         ctx = {'form_name': name, 'form_text_id': text_id, 'form_email': email}
 
         # 2. Validations
-        errors = self._signup_post_errors(name, text_id, email, p1, p2)
+        errors = self._signup_post_errors(Known_Person, name, text_id, email, p1, p2)
         # 2.R. if some errors, return with error message.
         if errors != [] :
             return render_template('signup.html', error=errors, **ctx)
@@ -70,6 +68,7 @@ class FacemanGate(GateABC):
         # 3 new_user の鋳型の作成
         hash_pass = generate_password_hash(p1) # assume p1 == p2
         new_user = Known_Person(name=name, email=email, text_id=text_id, password=hash_pass)
+
         # 4 DB write (maybe exceptions)
         try:
             self.db.add(new_user)
@@ -90,10 +89,10 @@ class FacemanGate(GateABC):
         # 5.1 signin at client
         self.state_signin(text_id, p1)
 
-        # 5.2 write server's log file
-        log_context = {"name": name, "text_id": text_id, "email": email, "p_1":"...omit...", "p2":"...omit...",}
-        log_msg = logger_text("SIGNUP_DB_MESSAGE", context=log_context)
-        self.logger.info(log_msg, exc_info=False) # not in exception
+        # # 5.2 write server's log file
+        # log_context = {"name": name, "text_id": text_id, "email": email, "p_1":"...omit...", "p2":"...omit...",}
+        # log_msg = logger_text("SIGNUP_DB_MESSAGE", context=log_context)
+        # self.logger.info(log_msg, exc_info=False) # not in exception
 
         # 5.2 update context (ctx)
         ctx |= { # append
