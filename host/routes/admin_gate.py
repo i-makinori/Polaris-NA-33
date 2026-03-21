@@ -26,7 +26,7 @@ class AdminGate(GateABC):
         # setup_admin 自体は以前作成したものを流用
         def deferred_admin_setup(state):
             setup_admin(state.app, self.db)
-            
+
         bp.record(deferred_admin_setup)
 
     # index などは setup_admin 側で Flask-Admin が生成するので
@@ -42,14 +42,16 @@ class MyModelView(ModelView):
         """
         # request._cached_user_till_request がセットされていることを期待
         # もしセットされていない場合に備え、Gate の current_user と同様のロジックを保険で入れる
-        user = getattr(request, '_cached_user_till_request', None)
+        # user = getattr(request, '_cached_user_till_request', None)
+        user = self.current_user()
         
         # セキュリティチェック：ログイン済みかつ is_admin が True
         return user is not None and getattr(user, 'is_admin', False)
+        # return True
 
     def inaccessible_callback(self, name, **kwargs):
         """権限がない場合の挙動"""
-        flash("管理者以外は立ち入り禁止です。宇宙の彼方へとお帰りください。")
+        flash("管理者以外は立ち入り禁止です。宇宙の彼方へと、管理者権限を得る旅へと、 let (s GO) !!!!!。")
         return redirect(url_for('facemans.signin_get'))
 
 
@@ -93,14 +95,14 @@ def setup_admin(app, db):
     # 2. 各モデルを管理画面に登録
     ## 表示制限有り
     ## ... MyModelView を継承したクラスを使うことで、すべてのページに表示制限が適用される。
-    admin.add_view(UserModelView(Known_Person, db, name="ユーザー管理", endpoint="admin_user"))
-    admin.add_view(TolopicaModelView(Tolopica, db, name="板管理", endpoint="admin_tolopica"))
-    admin.add_view(RanferenceModelView(Ranference, db, name="投稿管理", endpoint="admin_ranference"))
+    # admin.add_view(UserModelView(Known_Person, db, name="ユーザー管理", endpoint="admin_user"))
+    # admin.add_view(TolopicaModelView(Tolopica, db, name="板管理", endpoint="admin_tolopica"))
+    # admin.add_view(RanferenceModelView(Ranference, db, name="投稿管理", endpoint="admin_ranference"))
     
     ## 表示制限無し
-    # admin.add_view(MyModelView(Known_Person, db, name="ユーザー管理", endpoint="admin_user"))
-    # admin.add_view(MyModelView(Tolopica, db, name="板管理", endpoint="admin_tolopica"))
-    # admin.add_view(MyModelView(Ranference, db, name="投稿管理", endpoint="admin_ranference"))
+    admin.add_view(MyModelView(Known_Person, db, name="ユーザー管理", endpoint="admin_user"))
+    admin.add_view(MyModelView(Tolopica, db, name="板管理", endpoint="admin_tolopica"))
+    admin.add_view(MyModelView(Ranference, db, name="投稿管理", endpoint="admin_ranference"))
 
     # R. return
     return admin
