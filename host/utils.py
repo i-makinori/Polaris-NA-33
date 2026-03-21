@@ -2,28 +2,12 @@
 
 
 # text format for logger
-def logger_text(message, context=None):
-    """
-    message: message,
-    context: 記録したい変数などの辞書 {'name': name, 'email': email, ...}
-    """
-    if context:
-        # 辞書の中身を文字列に変換
-        ctx_str = " | ".join([f"{k}={v if v else '(empty)'}" for k, v in context.items()])
-    else:
-        # 辞書が無いならば、 "nothing" とする
-        ctx_str = "nothing"
-
-    return f"[{message}]\n>> Context: {ctx_str}\n"
-
-
 def logger_text(message, context=None, limit=100):
     """
     message: メッセージ
     context: 記録したい変数の辞書
     limit: 文字列を省略する閾値
     """
-
     def _abbreviate(v):
         s = str(v) if v is not None else "(empty)"
         s = s.replace('\n', ',\\n')
@@ -87,3 +71,28 @@ class GateABC(ABC):
             logger.error(log_msg, exc_info=True)
 
             return False
+
+    # user login status    def ensure_admin(self):
+    def current_user(self):
+        # request オブジェクト自体をキャッシュストレージとして使う
+        #
+        # request のデータは bp.add_url_rule された method が requestを受けた場合に、
+        # return (または exception) した時点で破棄される。
+        if not hasattr(request, '_cached_user_till_request'):
+            user_id = session.get('user_id')
+            request._cached_user_till_request = self.db.get(Known_Person, user_id) if user_id else None
+
+        return request._cached_user_till_request
+
+
+    # --- ガード関数 (ログイン状態の判定に依って、リクエスト処理を中断させる。) ---
+    def ensure_login(self):
+        """ログインしていなければ、リダイレクトオブジェクトを返す。
+        呼び出し側で if res := self.ensure_login(): return res のように使う。
+        """
+        # プロパティとして呼び出す（キャッシュが効く）
+        if self.current_user() is None:
+            flash("この操作にはログインが必要です。")
+            return redirect(url_for('faceman.signin_get'))
+        return None
+

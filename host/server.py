@@ -9,6 +9,7 @@ from logging.handlers import RotatingFileHandler
 # application
 from read_config import read_config_yaml
 from models import db
+from routes.admin_gate import AdminGate
 from routes.portal_gate import PortalGate
 from routes.faceman_gate import FacemanGate
 from routes.tolopica_gate import TolopicaGate
@@ -153,7 +154,8 @@ def create_app(conf):
     # Register gates to app
 
     # 1. Gate definitions as [('name', Constructor)]
-    gate_definitions = [('portal',   PortalGate),
+    gate_definitions = [('admin_ui', AdminGate),
+                        ('portal',   PortalGate),
                         ('facemans', FacemanGate),
                         ('tolopica', TolopicaGate),
                         ('ranference', RanferenceGate)]
