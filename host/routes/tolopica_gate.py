@@ -67,16 +67,15 @@ class TolopicaGate(GateABC):
         # 4. write to DB (maybe exceptions)
         db_success_p = self.safe_db_write(
             self.db, self.logger, new_topic,
-            log_tag="DB_ERROR_TOLOPICA",
+            log_tag="DB_ERROR_TOLOPICA_POST",
             context=ctx,
         )
+
         # 5. case by db_success_p
-        # 5.F if Fail ...
         if not db_success_p:
             # 5.R render
             error_messages_to_client = ["板の作成に失敗しました。サーバエラーです。"]
             return render_template('tolopica_add.html', error=error_messages_to_client, **ctx)
-        # 5.T if Success ...
         else:
             # 5.R render with flash message
             flash(f"新しい板「{title}」を作成しました。")

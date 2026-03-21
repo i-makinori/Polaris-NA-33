@@ -16,6 +16,31 @@ def logger_text(message, context=None):
 
     return f"[{message}]\n>> Context: {ctx_str}\n"
 
+
+def logger_text(message, context=None, limit=100):
+    """
+    message: メッセージ
+    context: 記録したい変数の辞書
+    limit: 文字列を省略する閾値
+    """
+
+    def _abbreviate(v):
+        s = str(v) if v is not None else "(empty)"
+        s = s.replace('\n', ',\\n')
+        t_len = len(s)
+        if t_len > limit:
+            h = (limit + 1) // 2
+            return f"{s[:h]} ...[omit {t_len - limit} chars]... {s[-(limit-h):]}"
+        return s
+
+    if context:
+        ctx_str = " | ".join([f"{k}={_abbreviate(v)}" for k, v in context.items()])
+    else:
+        ctx_str = "nothing"
+
+    return f"[{message}]\n>> Context: {ctx_str}\n"
+
+
 def get_values_from_dict(data_dict, key_list, default=""):
     """
     辞書（または辞書ライクなオブジェクト）から指定されたキーの値を一括取得し、

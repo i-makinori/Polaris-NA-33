@@ -74,17 +74,15 @@ class FacemanGate(GateABC):
         # 4 DB write (maybe exceptions)
         db_success_p = self.safe_db_write(
             self.db, self.logger, new_user,
-            log_tag="DB_ERROR_SIGNUP",
+            log_tag="DB_ERROR_SIGNUP_POST",
             context= ctx | {"p_1":"...omit...", "p2":"...omit..."}, # appended dict
         )
 
         # 5. case by db_success_p
-        # 5.F if Fail ...
         if not db_success_p:
             # 5.R render
             error_messages_to_client = ["ユーザ登録に失敗しました。サーバエラーです。"]
             return render_template('signup.html', error=error_messages_to_client, **ctx)
-        # 5.T if Success ...
         else:
             # 5.1 signin at client
             self.state_signin(text_id, p1)
@@ -99,6 +97,7 @@ class FacemanGate(GateABC):
                 'tml_message' : f"{name}さんは、id: {text_id} かつ、 email: {email} にてユーザ登録されました。",
                 'tml_title' : "ユーザ登録完了"
             }
+
             # 5.R render
             return render_template('message.html', **ctx)
 

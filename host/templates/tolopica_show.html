@@ -63,12 +63,12 @@
     {# Select of coding_type #}
     書き込み形式:
     <select name="coding_type">
-      <option value="text">テキスト</option>
-      <option value="markdown">MarkDown</option>
-    </select>
+      <option value="text" {{ 'selected' if form_coding_type == 'text' }}>テキスト</option>
+      <option value="markdown" {{ 'selected' if form_coding_type == 'markdown' }}>MarkDown</option>
+    </select> <br />
     
     {# Textarea of Content #}
-    <label for="content">書き込み内容:</label><br>
+    <label for="content">書き込み内容:</label><br />
     <textarea name="content" id="content" rows="11" style="width: 100%;">{{ form_content or '' }}</textarea>
 
     {# Select of Faceman_Type by button #}
